@@ -126,12 +126,12 @@ class FirstPage(Action):
 
     def sendkeys_login_name(self):
         '''输入用户名'''
-        # self.find_element(self.login_name).send_keys('13874973454')
+        # self.find_element(self.login_name).send_keys('xxxxxxx')
         self.send_keys(self.login_name,'13874973454')
 
     def sendkeys_login_pwd(self):
         '''输入密码'''
-        # self.find_element(self.login_pwd).send_keys('111111')
+        # self.find_element(self.login_pwd).send_keys('xxxxxxx')
         self.send_keys(self.login_pwd,'111111')
 
     def sendkeys_goods_size(self, n):
