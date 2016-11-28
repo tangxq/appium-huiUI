@@ -18,15 +18,15 @@ def sendreport(file_new):
     att1["Content-Disposition"] = 'attachment; filename="result.html"'
     msg.attach(att1)
     #设定邮件标题
-    msg['subject'] = Header('惠配通Android App回归测试报告', 'utf-8')
-    msg['From'] = 'tangyaqiang@huimin100.cn'
+    msg['subject'] = Header('Android App回归测试报告', 'utf-8')
+    msg['From'] = 'XXXXXX'
     msg['From'] = Header('Tester', 'utf-8')
     #收件人,设置多个收件人时用;隔开
-    msg['To'] = 'tangyaqiang@huimin100.cn'
+    msg['To'] = 'XXXXXX'
     try:
         smtp = smtplib.SMTP('smtp.qiye.163.com', '25')
         #smtp.set_debuglevel(1)
-        smtp.login('tangyaqiang@huimin100.cn', 'Huimin@20160413')  #登录邮箱的账户和密码
+        smtp.login('XXXXXX', 'XXXXX')  #登录邮箱的账户和密码
         smtp.sendmail(msg['From'], msg['To'].split(';'), msg.as_string())
         smtp.quit()
         print('report has send out!')
