@@ -1,5 +1,5 @@
 __author__ = 'Administrator'
-"""test"""
+
 from http.server import HTTPServer, CGIHTTPRequestHandler
 port = 8081
 httpd = HTTPServer(('', port), CGIHTTPRequestHandler)
