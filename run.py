@@ -1,42 +1,45 @@
-__author__ = 'Administrator'
-import sys, time, os, re, logging
-from logging.handlers import TimedRotatingFileHandler
+import time
+import threading
+from base.batch_run import get_udids, get_ports, start_appium, run_case, kill_appium
+from base.api import get_package, logger
 
-sys.path.append('./interface')
-from common.sendmail import sendreport
-from common.create_report import create_report
-from common.create_report import create_repAgain
 
-logger = logging.getLogger('main')
-logger.setLevel(logging.WARNING)
-# handler=logging.FileHandler('G:/huipeitongUI/log/log.txt')
-#设置日志为按时间过期删除日志,指定一天生成2个日志文件，保存15个日志文件（一周）,过期的会被自动删除掉
-handler = TimedRotatingFileHandler('G:/huipeitongUI/log/log.txt', when='midnight', interval=1, backupCount=7)
-handler.setLevel(logging.WARNING)
-formatter = logging.Formatter('%(asctime)s - %(funcName)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-
-if __name__ == '__main__':
-    output = os.popen('adb devices').read()
-    if '\tdevice\n' in output:
-        logger.warning('start testing...')
-        report_info = create_report()
-        #如果首次未通过，再将未通过的case执行一次case
-        if report_info['fail'] != [] or report_info['error'] != []:
-            logger.warning('start again...')
-            report_info = create_repAgain(report_info['html'])
-            #如果再次未通过就发送短信和邮件
-            if report_info['fail'] != [] or report_info['error'] != []:
-                send_outorfail = sendreport(report_info['file_new'])
-                #判断邮件是否发送成功，未发送成功继续发送（总共发送3次）
-                if send_outorfail != 0:
-                    for i in range(3):
-                        logger.warning('sendmail number: %s:', i)
-                        send_outorfail = sendreport(report_info['file_new'])
-                        if send_outorfail == 0:
-                            break
-        logger.warning('testing end!')
+if __name__ == "__main__":
+    udids = get_udids()
+    ports = get_ports(udids)
+    if udids:
+        get_package()
+        try:
+            th1 = threading.Thread(target=start_appium, args=(udids, ports))
+            th2 = threading.Thread(target=run_case, args=(udids, ports))
+            ths = [th1, th2]
+            for th in ths:
+                th.start()
+                time.sleep(15)
+            ths[1].join()
+        finally:
+            kill_appium()
     else:
-        logger.warning('please check whether the adb connection!')
-        print('please check whether the adb connection!')
+        logger.warning('adb devices未获取到设备，请检查adb连接状态')
+
+    # try:
+    #     if check_adb_status():
+    #         boot_time = 1
+    #         DESIRED_CAPS['remoteHost'] = 'http://127.0.0.1:{}/wd/hub'.format(4723)
+    #         config.write()
+    #         while boot_time <= 3:
+    #             if check_appium_server_status():
+    #                 get_package()
+    #                 report_info = create_report()
+    #                 if report_info['fail'] != '0' or report_info['error'] != '0':
+    #                     send_report(report_info['file'])
+    #                 break
+    #             logger.info('尝试第{}次启动appium server'.format(boot_time))
+    #             start_appium()
+    #             boot_time += 1
+    #         else:
+    #             logger.info('appium server 启动失败请检查本地运行环境.')
+    # except Exception:
+    #     error = traceback.format_exc()
+    #     logger.error(error)
+    #     raise

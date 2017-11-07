@@ -1,0 +1,7 @@
+appium-python-client==0.24
+parameterized==0.6.1
+paramiko==2.2.1
+selenium==3.5
+requests==2.10.0
+configobj==5.0.6
+
