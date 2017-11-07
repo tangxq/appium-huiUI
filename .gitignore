@@ -3,7 +3,6 @@
 *.py[cod]
 /image/
 /log/
-/report/
 package
 base/config.ini
 /chromedriver/

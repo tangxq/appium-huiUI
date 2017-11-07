@@ -1,0 +1,5376 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title> Android UI自动化测试报告</title>
+    <meta name="generator" content="BSTestRunner 0.8.4"/>
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.0/css/bootstrap.min.css">
+    
+<style type="text/css" media="screen">
+
+/* -- css div popup ------------------------------------------------------------------------ */
+.popup_window {
+    display: none;
+    position: relative;
+    left: 0px;
+    top: 0px;
+    /*border: solid #627173 1px; */
+    padding: 10px;
+    background-color: #99CCFF;
+    font-family: "Lucida Console", "Courier New", Courier, monospace;
+    text-align: left;
+    font-size: 10pt;
+    width: 650px;
+}
+
+/* -- report ------------------------------------------------------------------------ */
+
+#show_detail_line .label {
+    font-size: 85%;
+    cursor: pointer;
+}
+
+#show_detail_line {
+    margin: 2em auto 1em auto;
+}
+
+#total_row  { font-weight: bold; }
+.hiddenRow  { display: none; }
+.testcase   { margin-left: 2em; }
+
+.piechart{  
+    position:absolute;  ;
+    top:20px;  
+    left:800px; 
+    width: 200px;
+    float: left;
+    display:  inline;
+}
+
+</style>
+
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+<body onload="hide_pic()">
+<script language="javascript" type="text/javascript"><!--
+output_list = Array();
+
+/* level - 0:Summary; 1:Failed; 2:All */
+function showCase(level) {
+    trs = document.getElementsByTagName("tr");
+    for (var i = 0; i < trs.length; i++) {
+        tr = trs[i];
+        id = tr.id;
+        if (id.substr(0,2) == 'ft') {
+            if (level < 1) {
+                tr.className = 'hiddenRow';
+            }
+            else {
+                tr.className = '';
+            }
+        }
+        if (id.substr(0,2) == 'pt') {
+            if (level > 1) {
+                tr.className = '';
+            }
+            else {
+                tr.className = 'hiddenRow';
+            }
+        }
+    }
+}
+
+
+function showClassDetail(cid, count) {
+    var id_list = Array(count);
+    var toHide = 1;
+    for (var i = 0; i < count; i++) {
+        tid0 = 't' + cid.substr(1) + '.' + (i+1);
+        tid = 'f' + tid0;
+        tr = document.getElementById(tid);
+        if (!tr) {
+            tid = 'p' + tid0;
+            tr = document.getElementById(tid);
+        }
+        id_list[i] = tid;
+        if (tr.className) {
+            toHide = 0;
+        }
+    }
+    for (var i = 0; i < count; i++) {
+        tid = id_list[i];
+        if (toHide) {
+            document.getElementById('div_'+tid).style.display = 'none'
+            document.getElementById(tid).className = 'hiddenRow';
+        }
+        else {
+            document.getElementById(tid).className = '';
+        }
+    }
+}
+
+
+function showTestDetail(div_id){
+    var details_div = document.getElementById(div_id)
+    var displayState = details_div.style.display
+    // alert(displayState)
+    if (displayState != 'block' ) {
+        displayState = 'block'
+        details_div.style.display = 'block'
+    }
+    else {
+        details_div.style.display = 'none'
+    }
+}
+
+
+function html_escape(s) {
+    s = s.replace(/&/g,'&amp;');
+    s = s.replace(/</g,'&lt;');
+    s = s.replace(/>/g,'&gt;');
+    return s;
+}
+/* 隐藏没有href属性的pic */
+function hide_pic() {
+    var es = document.getElementsByName("pic")
+    for (var i = 0; i < es.length; i++) {
+        var e = es[i]
+        if (e.getAttribute("href") == "") {
+            e.setAttribute("style", "display: none")
+        }
+    }
+}
+
+function drawCircle(pass, fail, error){ 
+    var color = ["#3c763d","#a94442","#8a6d3b"];
+    var data = [pass,fail,error]; 
+    var text_arr = ["Pass", "Fail", "Error"];
+    var canvas = document.getElementById("circle");  
+    var ctx = canvas.getContext("2d");  
+    var startPoint=0;
+    var width = 20, height = 10;
+    var posX = 112 * 2 + 20, posY = 30;
+    var textX = posX + width + 5, textY = posY + 10;
+    for(var i=0;i<data.length;i++){  
+        ctx.fillStyle = color[i];  
+        ctx.beginPath();  
+        ctx.moveTo(112,84);   
+        ctx.arc(112,84,84,startPoint,startPoint+Math.PI*2*(data[i]/(data[0]+data[1]+data[2])),false);  
+        ctx.fill();  
+        startPoint += Math.PI*2*(data[i]/(data[0]+data[1]+data[2]));  
+        ctx.fillStyle = color[i];  
+        ctx.fillRect(posX, posY + 20 * i, width, height);  
+        ctx.moveTo(posX, posY + 20 * i);  
+        ctx.font = 'bold 14px';
+        ctx.fillStyle = color[i];
+        var percent = text_arr[i] + ":"+data[i];  
+        ctx.fillText(percent, textX, textY + 20 * i);  
+    }
+}
+
+/* obsoleted by detail in <div>
+function showOutput(id, name) {
+    var w = window.open("", //url
+                    name,
+                    "resizable,scrollbars,status,width=800,height=450");
+    d = w.document;
+    d.write("<pre>");
+    d.write(html_escape(output_list[id]));
+    d.write("\n");
+    d.write("<a href='javascript:window.close()'>close</a>\n");
+    d.write("</pre>\n");
+    d.close();
+}
+*/
+--></script>
+
+<div class="piechart">
+    <div>
+        <canvas id="circle" width="350" height="168" </canvas>
+    </div>
+</div>
+
+<div class="container">
+    <div class='heading'>
+<h1> Android UI自动化测试报告</h1>
+<p><strong>Start Time:</strong> 2017-11-06 22:24:22</p>
+<p><strong>Duration:</strong> 1:17:13.381015</p>
+<p><strong>Status:</strong> <span class="text text-success">Pass <strong>120</strong></span> <span class="text text-danger">Failure <strong>6</strong></span></p>
+
+<p class='description'>运行环境:Meizu m1metal android 5.1 测试apk: P-hpt_1.6.6_v119.apk</p>
+</div>
+
+
+    
+<p id='show_detail_line'>
+<span class="label label-primary" onclick="showCase(0)">Summary</span>
+<span class="label label-danger" onclick="showCase(1)">Failed</span>
+<span class="label label-default" onclick="showCase(2)">All</span>
+</p>
+<table id='result_table' class="table">
+    <thead>
+        <tr id='header_row'>
+            <th>Test Group/Test case</td>
+            <th>Count</td>
+            <th>Pass</td>
+            <th>Fail</td>
+            <th>Error</td>
+            <th>View</td>
+            <th>Screenshot</td>
+        </tr>
+    </thead>
+    <tbody>
+        
+<tr class='text text-danger'>
+    <td>test_account_balance.TestAccountBalance: 商户中心---余额</td>
+    <td>11</td>
+    <td>10</td>
+    <td>1</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c1',11)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='ft1.1' class='text text-success'>
+    <td class='text text-success'><div class='testcase'>test_ali_pay_1: [账户余额][去充值]支付宝充值1元</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_ft1.1')" >
+        retry</a>
+
+    <div id='div_ft1.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_ft1.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+ft1.1: 2017-11-06 22:24:22,123-INFO-apk 安装路径:E:\huipeitong\package\P-hpt_1.6.6_v119.apk
+2017-11-06 22:24:22,590-INFO-开始执行测试.
+2017-11-06 22:24:22,590-INFO-开始初始化 appium driver.
+2017-11-06 22:24:22,591-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 22:24:46,794-INFO-appium driver 初始化完毕.
+2017-11-06 22:24:46,795-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 22:24:49,917-INFO-进入引导页
+2017-11-06 22:24:49,995-INFO-上滑屏幕
+2017-11-06 22:24:52,584-INFO-进入到首页
+2017-11-06 22:24:52,584-INFO-点击"商户中心"
+2017-11-06 22:24:52,897-INFO-点击"立即登录"
+2017-11-06 22:24:54,803-INFO-用户名输入框输入xxxxxx
+2017-11-06 22:24:55,379-INFO-密码输入框输入xxxxxx
+2017-11-06 22:24:56,737-INFO-点击"立即登录"
+2017-11-06 22:24:59,376-INFO-进入到首页
+2017-11-06 22:24:59,376-INFO-点击"商户中心"
+2017-11-06 22:25:00,824-INFO-点击余额
+2017-11-06 22:25:02,188-INFO-START TEST:TestAccountBalance.test_ali_pay_1
+2017-11-06 22:25:02,188-INFO-点击去充值
+2017-11-06 22:25:03,918-INFO-充值进入输入框输入1
+2017-11-06 22:25:04,671-INFO-点击支付宝支付
+2017-11-06 22:25:05,251-INFO-点击立即充值
+2017-11-06 22:27:07,005-INFO-按返回键.
+imagehttp://192.168.88.79:8081/huipeitong/image/17-11-06_22_28_55.png
+2017-11-06 22:28:57,637-INFO-END TEST:TestAccountBalance.test_ali_pay_1
+Traceback (most recent call last):
+  File "E:\huipeitong\base\api.py", line 164, in wrapper
+    result = func(*args, **kwargs)
+  File "E:\huipeitong\testcase\test_account_balance.py", line 81, in test_ali_pay_1
+    '返回账户充值页失败'
+AssertionError: False is not true : 返回账户充值页失败
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="http://192.168.88.79:8081/huipeitong/image/17-11-06_22_28_55.png" title="http://192.168.88.79:8081/huipeitong/image/17-11-06_22_28_55.png ">pic</a>
+    </td>
+</tr>
+
+<tr id='ft1.2' class='text text-success'>
+    <td class='text text-danger'><div class='testcase'>test_ali_pay_1: [账户余额][去充值]支付宝充值1元</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_ft1.2')" >
+        fail</a>
+
+    <div id='div_ft1.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_ft1.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+ft1.2: 2017-11-06 22:29:00,732-INFO-进入到首页
+2017-11-06 22:29:00,732-INFO-点击"商户中心"
+2017-11-06 22:29:02,127-INFO-点击余额
+2017-11-06 22:29:03,390-INFO-START TEST:TestAccountBalance.test_ali_pay_1
+2017-11-06 22:29:03,390-INFO-点击去充值
+2017-11-06 22:29:04,605-INFO-充值进入输入框输入1
+2017-11-06 22:29:05,170-INFO-点击支付宝支付
+2017-11-06 22:29:05,737-INFO-点击立即充值
+2017-11-06 22:31:06,168-INFO-按返回键.
+imagehttp://192.168.88.79:8081/huipeitong/image/17-11-06_22_32_54.png
+2017-11-06 22:32:57,024-INFO-END TEST:TestAccountBalance.test_ali_pay_1
+Traceback (most recent call last):
+  File "E:\huipeitong\base\api.py", line 164, in wrapper
+    result = func(*args, **kwargs)
+  File "E:\huipeitong\testcase\test_account_balance.py", line 81, in test_ali_pay_1
+    '返回账户充值页失败'
+AssertionError: False is not true : 返回账户充值页失败
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="http://192.168.88.79:8081/huipeitong/image/17-11-06_22_32_54.png" title="http://192.168.88.79:8081/huipeitong/image/17-11-06_22_32_54.png ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt1.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_award_tab_switch: [账户余额][明细]日、月、年奖励tab切换</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt1.3')" >
+        pass</a>
+
+    <div id='div_pt1.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt1.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt1.3: 2017-11-06 22:32:59,926-INFO-进入到首页
+2017-11-06 22:32:59,926-INFO-点击"商户中心"
+2017-11-06 22:33:01,465-INFO-点击余额
+2017-11-06 22:33:02,793-INFO-START TEST:TestAccountBalance.test_award_tab_switch
+2017-11-06 22:33:02,794-INFO-点击明细
+2017-11-06 22:33:04,164-INFO-点击月奖励
+2017-11-06 22:33:05,223-INFO-点击年奖励
+2017-11-06 22:33:06,118-INFO-点击日奖励
+2017-11-06 22:33:07,058-INFO-END TEST:TestAccountBalance.test_award_tab_switch
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt1.4' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_bank_1: [账户余额][去充值]银联支付1元</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt1.4')" >
+        pass</a>
+
+    <div id='div_pt1.4' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt1.4').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt1.4: 2017-11-06 22:33:09,942-INFO-进入到首页
+2017-11-06 22:33:09,943-INFO-点击"商户中心"
+2017-11-06 22:33:11,419-INFO-点击余额
+2017-11-06 22:33:12,756-INFO-START TEST:TestAccountBalance.test_bank_1
+2017-11-06 22:33:12,756-INFO-点击去充值
+2017-11-06 22:33:13,971-INFO-充值进入输入框输入1
+2017-11-06 22:33:14,536-INFO-点击银联支付
+2017-11-06 22:33:15,109-INFO-点击立即充值
+2017-11-06 22:33:18,320-INFO-点击"返回"
+2017-11-06 22:33:32,584-INFO-END TEST:TestAccountBalance.test_bank_1
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt1.5' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_account_recharge: [账户余额][去充值]进入账户充值页</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt1.5')" >
+        pass</a>
+
+    <div id='div_pt1.5' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt1.5').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt1.5: 2017-11-06 22:33:35,510-INFO-进入到首页
+2017-11-06 22:33:35,510-INFO-点击"商户中心"
+2017-11-06 22:33:36,907-INFO-点击余额
+2017-11-06 22:33:38,258-INFO-START TEST:TestAccountBalance.test_coming_account_recharge
+2017-11-06 22:33:38,258-INFO-点击去充值
+2017-11-06 22:33:39,481-INFO-END TEST:TestAccountBalance.test_coming_account_recharge
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt1.6' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_award_details: [账户余额][明细]进入奖励明细页</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt1.6')" >
+        pass</a>
+
+    <div id='div_pt1.6' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt1.6').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt1.6: 2017-11-06 22:33:42,377-INFO-进入到首页
+2017-11-06 22:33:42,377-INFO-点击"商户中心"
+2017-11-06 22:33:43,827-INFO-点击余额
+2017-11-06 22:33:45,148-INFO-START TEST:TestAccountBalance.test_coming_award_details
+2017-11-06 22:33:45,148-INFO-点击明细
+2017-11-06 22:33:46,611-INFO-END TEST:TestAccountBalance.test_coming_award_details
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt1.7' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_balance_details: [账户余额][余额明细]进入余额明细页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt1.7')" >
+        pass</a>
+
+    <div id='div_pt1.7' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt1.7').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt1.7: 2017-11-06 22:33:49,471-INFO-进入到首页
+2017-11-06 22:33:49,471-INFO-点击"商户中心"
+2017-11-06 22:33:50,879-INFO-点击余额
+2017-11-06 22:33:52,214-INFO-START TEST:TestAccountBalance.test_coming_balance_details
+2017-11-06 22:33:52,214-INFO-点击余额明细
+2017-11-06 22:33:55,283-INFO-END TEST:TestAccountBalance.test_coming_balance_details
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt1.8' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_coupon_center: [账户余额][领卷]进入领卷中心页</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt1.8')" >
+        pass</a>
+
+    <div id='div_pt1.8' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt1.8').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt1.8: 2017-11-06 22:33:58,287-INFO-进入到首页
+2017-11-06 22:33:58,288-INFO-点击"商户中心"
+2017-11-06 22:33:59,717-INFO-点击余额
+2017-11-06 22:34:01,038-INFO-START TEST:TestAccountBalance.test_coming_coupon_center
+2017-11-06 22:34:01,038-INFO-点击领卷
+2017-11-06 22:34:03,505-INFO-END TEST:TestAccountBalance.test_coming_coupon_center
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt1.9' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_recharge_no_choose_pay_way: [账户余额][去充值][输入1][立即充值]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt1.9')" >
+        pass</a>
+
+    <div id='div_pt1.9' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt1.9').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt1.9: 2017-11-06 22:34:21,392-INFO-进入到首页
+2017-11-06 22:34:21,392-INFO-点击"商户中心"
+2017-11-06 22:34:22,777-INFO-点击余额
+2017-11-06 22:34:24,126-INFO-START TEST:TestAccountBalance.test_recharge_no_choose_pay_way
+2017-11-06 22:34:24,126-INFO-点击去充值
+2017-11-06 22:34:25,342-INFO-充值进入输入框输入1
+2017-11-06 22:34:25,905-INFO-点击立即充值
+2017-11-06 22:34:26,626-INFO-找到toast"//*[contains(@text, "请选择支付方式")]"
+2017-11-06 22:34:26,626-INFO-END TEST:TestAccountBalance.test_recharge_no_choose_pay_way
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt1.10' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_recharge_no_input_price: [账户余额][去充值][选择支付宝][立即充值]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt1.10')" >
+        pass</a>
+
+    <div id='div_pt1.10' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt1.10').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt1.10: 2017-11-06 22:34:29,608-INFO-进入到首页
+2017-11-06 22:34:29,609-INFO-点击"商户中心"
+2017-11-06 22:34:31,053-INFO-点击余额
+2017-11-06 22:34:32,385-INFO-START TEST:TestAccountBalance.test_recharge_no_input_price
+2017-11-06 22:34:32,385-INFO-点击去充值
+2017-11-06 22:34:33,620-INFO-点击支付宝支付
+2017-11-06 22:34:33,678-INFO-点击立即充值
+2017-11-06 22:34:34,340-INFO-找到toast"//*[contains(@text, "充值金额需大于0")]"
+2017-11-06 22:34:34,340-INFO-END TEST:TestAccountBalance.test_recharge_no_input_price
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt1.11' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_recharge_no_input_price_and_pay_way: [账户余额][去充值][立即充值]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt1.11')" >
+        pass</a>
+
+    <div id='div_pt1.11' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt1.11').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt1.11: 2017-11-06 22:34:37,270-INFO-进入到首页
+2017-11-06 22:34:37,270-INFO-点击"商户中心"
+2017-11-06 22:34:38,703-INFO-点击余额
+2017-11-06 22:34:40,033-INFO-START TEST:TestAccountBalance.test_recharge_no_input_price_and_pay_way
+2017-11-06 22:34:40,034-INFO-点击去充值
+2017-11-06 22:34:41,263-INFO-点击立即充值
+2017-11-06 22:34:41,446-INFO-找到toast"//*[contains(@text, "请选择支付方式")]"
+2017-11-06 22:34:41,446-INFO-END TEST:TestAccountBalance.test_recharge_no_input_price_and_pay_way
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt1.12' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_w_chat_1: [账户余额][去充值]微信充值1元</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt1.12')" >
+        pass</a>
+
+    <div id='div_pt1.12' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt1.12').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt1.12: 2017-11-06 22:34:44,467-INFO-进入到首页
+2017-11-06 22:34:44,467-INFO-点击"商户中心"
+2017-11-06 22:34:45,893-INFO-点击余额
+2017-11-06 22:34:47,215-INFO-START TEST:TestAccountBalance.test_w_chat_1
+2017-11-06 22:34:47,215-INFO-点击去充值
+2017-11-06 22:34:48,443-INFO-充值进入输入框输入1
+2017-11-06 22:34:49,010-INFO-点击微信支付
+2017-11-06 22:34:49,577-INFO-点击立即充值
+2017-11-06 22:35:02,231-INFO-按返回键.
+2017-11-06 22:35:03,580-INFO-END TEST:TestAccountBalance.test_w_chat_1
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_account_manage.TestAccountManage: 商户中心---账户管理</td>
+    <td>5</td>
+    <td>5</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c2',5)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt2.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_add_address: [账户管理][店铺地址管理][新增收货地址]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt2.1')" >
+        pass</a>
+
+    <div id='div_pt2.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt2.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt2.1: 2017-11-06 22:35:05,883-INFO-退出driver.
+2017-11-06 22:35:12,041-INFO-开始初始化 appium driver.
+2017-11-06 22:35:12,042-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 22:35:35,988-INFO-appium driver 初始化完毕.
+2017-11-06 22:35:35,988-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 22:35:39,083-INFO-进入引导页
+2017-11-06 22:35:39,151-INFO-上滑屏幕
+2017-11-06 22:35:41,740-INFO-进入到首页
+2017-11-06 22:35:41,740-INFO-点击"商户中心"
+2017-11-06 22:35:42,205-INFO-点击"立即登录"
+2017-11-06 22:35:43,968-INFO-用户名输入框输入xxxxxx
+2017-11-06 22:35:44,538-INFO-密码输入框输入xxxxxx
+2017-11-06 22:35:45,916-INFO-点击"立即登录"
+2017-11-06 22:35:48,508-INFO-进入到首页
+2017-11-06 22:35:48,508-INFO-点击"商户中心"
+2017-11-06 22:35:49,920-INFO-点击账户管理
+2017-11-06 22:35:51,174-INFO-START TEST:TestAccountManage.test_add_address
+2017-11-06 22:35:51,175-INFO-点击店铺地址管理
+2017-11-06 22:35:52,518-INFO-点击新增收货地址
+2017-11-06 22:35:53,535-INFO-END TEST:TestAccountManage.test_add_address
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt2.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_change_pwd_error: [账户管理][修改登录密码]输入错误密码</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt2.2')" >
+        pass</a>
+
+    <div id='div_pt2.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt2.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt2.2: 2017-11-06 22:35:56,424-INFO-进入到首页
+2017-11-06 22:35:56,424-INFO-点击"商户中心"
+2017-11-06 22:35:57,891-INFO-点击账户管理
+2017-11-06 22:35:59,193-INFO-START TEST:TestAccountManage.test_change_pwd_error
+2017-11-06 22:35:59,194-INFO-点击修改登录密码
+2017-11-06 22:36:00,235-INFO-输入原密码
+2017-11-06 22:36:00,796-INFO-点击"确定"
+2017-11-06 22:36:02,347-INFO-找到toast"//*[contains(@text, "密码错误，请重新输入")]"
+2017-11-06 22:36:02,347-INFO-END TEST:TestAccountManage.test_change_pwd_error
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt2.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_change_pwd_right: [账号管理][修改登录密码]进入重置密码页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt2.3')" >
+        pass</a>
+
+    <div id='div_pt2.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt2.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt2.3: 2017-11-06 22:36:05,353-INFO-进入到首页
+2017-11-06 22:36:05,354-INFO-点击"商户中心"
+2017-11-06 22:36:07,095-INFO-点击账户管理
+2017-11-06 22:36:08,376-INFO-START TEST:TestAccountManage.test_change_pwd_right
+2017-11-06 22:36:08,376-INFO-点击修改登录密码
+2017-11-06 22:36:09,432-INFO-输入原密码
+2017-11-06 22:36:09,996-INFO-点击"确定"
+2017-11-06 22:36:11,898-INFO-END TEST:TestAccountManage.test_change_pwd_right
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt2.4' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_address_manage: [账户管理][店铺地址管理]进入店铺地址管理页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt2.4')" >
+        pass</a>
+
+    <div id='div_pt2.4' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt2.4').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt2.4: 2017-11-06 22:36:14,917-INFO-进入到首页
+2017-11-06 22:36:14,918-INFO-点击"商户中心"
+2017-11-06 22:36:16,365-INFO-点击账户管理
+2017-11-06 22:36:17,644-INFO-START TEST:TestAccountManage.test_coming_address_manage
+2017-11-06 22:36:17,644-INFO-点击店铺地址管理
+2017-11-06 22:36:19,022-INFO-END TEST:TestAccountManage.test_coming_address_manage
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt2.5' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_auth: [账户管理][实名认证]进入实名认证页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt2.5')" >
+        pass</a>
+
+    <div id='div_pt2.5' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt2.5').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt2.5: 2017-11-06 22:36:22,030-INFO-进入到首页
+2017-11-06 22:36:22,030-INFO-点击"商户中心"
+2017-11-06 22:36:23,463-INFO-点击账户管理
+2017-11-06 22:36:24,733-INFO-START TEST:TestAccountManage.test_coming_auth
+2017-11-06 22:36:24,733-INFO-点击实名认证
+2017-11-06 22:36:26,040-INFO-END TEST:TestAccountManage.test_coming_auth
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_all_order.TestAllOrder: 商户中心---全部订单</td>
+    <td>3</td>
+    <td>3</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c3',3)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt3.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_cancel: [我的订单][已取消]切换已取消标签</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt3.1')" >
+        pass</a>
+
+    <div id='div_pt3.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt3.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt3.1: 2017-11-06 22:36:28,238-INFO-退出driver.
+2017-11-06 22:36:34,337-INFO-开始初始化 appium driver.
+2017-11-06 22:36:34,337-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 22:36:57,999-INFO-appium driver 初始化完毕.
+2017-11-06 22:36:58,000-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 22:37:01,097-INFO-进入引导页
+2017-11-06 22:37:01,166-INFO-上滑屏幕
+2017-11-06 22:38:07,195-INFO-进入到首页
+2017-11-06 22:38:07,195-INFO-点击"商户中心"
+2017-11-06 22:38:07,526-INFO-点击"立即登录"
+2017-11-06 22:38:09,315-INFO-用户名输入框输入xxxxxx
+2017-11-06 22:38:09,873-INFO-密码输入框输入xxxxxx
+2017-11-06 22:38:11,298-INFO-点击"立即登录"
+2017-11-06 22:38:17,094-INFO-进入到首页
+2017-11-06 22:38:17,094-INFO-点击"商户中心"
+2017-11-06 22:38:18,478-INFO-START TEST:TestAllOrder.test_cancel
+2017-11-06 22:38:18,478-INFO-点击全部订单
+2017-11-06 22:38:19,866-INFO-点击已取消
+2017-11-06 22:38:21,066-INFO-END TEST:TestAllOrder.test_cancel
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt3.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_all_order: [我的订单]默认显示全部订单页</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt3.2')" >
+        pass</a>
+
+    <div id='div_pt3.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt3.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt3.2: 2017-11-06 22:38:24,799-INFO-进入到首页
+2017-11-06 22:38:24,799-INFO-点击"商户中心"
+2017-11-06 22:38:26,340-INFO-START TEST:TestAllOrder.test_coming_all_order
+2017-11-06 22:38:26,340-INFO-点击全部订单
+2017-11-06 22:38:27,875-INFO-END TEST:TestAllOrder.test_coming_all_order
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt3.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_done: [我的订单][已完成]切换已完成标签</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt3.3')" >
+        pass</a>
+
+    <div id='div_pt3.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt3.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt3.3: 2017-11-06 22:38:31,006-INFO-进入到首页
+2017-11-06 22:38:31,007-INFO-点击"商户中心"
+2017-11-06 22:38:32,694-INFO-START TEST:TestAllOrder.test_done
+2017-11-06 22:38:32,695-INFO-点击全部订单
+2017-11-06 22:38:34,116-INFO-点击已完成
+2017-11-06 22:38:35,085-INFO-END TEST:TestAllOrder.test_done
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_b_center.TestBCenter: 商户中心</td>
+    <td>19</td>
+    <td>19</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c4',19)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt4.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_account_manage: [商户中心][账户管理]进入账户管理页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.1')" >
+        pass</a>
+
+    <div id='div_pt4.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.1: 2017-11-06 22:38:37,409-INFO-退出driver.
+2017-11-06 22:38:43,419-INFO-开始初始化 appium driver.
+2017-11-06 22:38:43,419-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 22:39:07,283-INFO-appium driver 初始化完毕.
+2017-11-06 22:39:07,283-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 22:39:10,415-INFO-进入引导页
+2017-11-06 22:39:10,484-INFO-上滑屏幕
+2017-11-06 22:39:12,949-INFO-进入到首页
+2017-11-06 22:39:12,949-INFO-点击"商户中心"
+2017-11-06 22:39:13,371-INFO-点击"立即登录"
+2017-11-06 22:39:15,176-INFO-用户名输入框输入xxxxxx
+2017-11-06 22:39:15,742-INFO-密码输入框输入xxxxxx
+2017-11-06 22:39:17,080-INFO-点击"立即登录"
+2017-11-06 22:39:19,724-INFO-进入到首页
+2017-11-06 22:39:19,724-INFO-点击"商户中心"
+2017-11-06 22:39:21,093-INFO-START TEST:TestBCenter.test_coming_account_manage
+2017-11-06 22:39:21,094-INFO-点击账户管理
+2017-11-06 22:39:22,344-INFO-END TEST:TestBCenter.test_coming_account_manage
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_all_order: [商户中心][全部订单]进入全部订单页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.2')" >
+        pass</a>
+
+    <div id='div_pt4.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.2: 2017-11-06 22:39:25,367-INFO-进入到首页
+2017-11-06 22:39:25,367-INFO-点击"商户中心"
+2017-11-06 22:39:27,134-INFO-START TEST:TestBCenter.test_coming_all_order
+2017-11-06 22:39:27,134-INFO-点击全部订单
+2017-11-06 22:39:28,590-INFO-END TEST:TestBCenter.test_coming_all_order
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_back_good: [商户中心][退货]进入退货页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.3')" >
+        pass</a>
+
+    <div id='div_pt4.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.3: 2017-11-06 22:39:31,660-INFO-进入到首页
+2017-11-06 22:39:31,660-INFO-点击"商户中心"
+2017-11-06 22:39:33,416-INFO-START TEST:TestBCenter.test_coming_back_good
+2017-11-06 22:39:33,416-INFO-点击退货
+2017-11-06 22:39:34,693-INFO-END TEST:TestBCenter.test_coming_back_good
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.4' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_balance: [商户中心][余额]进入余额页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.4')" >
+        pass</a>
+
+    <div id='div_pt4.4' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.4').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.4: 2017-11-06 22:39:37,674-INFO-进入到首页
+2017-11-06 22:39:37,674-INFO-点击"商户中心"
+2017-11-06 22:39:39,077-INFO-START TEST:TestBCenter.test_coming_balance
+2017-11-06 22:39:39,077-INFO-点击余额
+2017-11-06 22:39:40,408-INFO-END TEST:TestBCenter.test_coming_balance
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.5' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_cashier: [商户中心][急速收银]进入急速收银页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.5')" >
+        pass</a>
+
+    <div id='div_pt4.5' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.5').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.5: 2017-11-06 22:39:43,435-INFO-进入到首页
+2017-11-06 22:39:43,435-INFO-点击"商户中心"
+2017-11-06 22:39:44,830-INFO-START TEST:TestBCenter.test_coming_cashier
+2017-11-06 22:39:44,831-INFO-点击急速收银
+2017-11-06 22:39:46,082-INFO-END TEST:TestBCenter.test_coming_cashier
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.6' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_commendAward: [商户中心][有奖推荐]进入有奖推荐页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.6')" >
+        pass</a>
+
+    <div id='div_pt4.6' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.6').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.6: 2017-11-06 22:39:49,086-INFO-进入到首页
+2017-11-06 22:39:49,086-INFO-点击"商户中心"
+2017-11-06 22:39:50,838-INFO-START TEST:TestBCenter.test_coming_commendAward
+2017-11-06 22:39:50,839-INFO-点击有奖推荐
+2017-11-06 22:39:52,780-INFO-END TEST:TestBCenter.test_coming_commendAward
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.7' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_deal_record: [商户中心][交易记录]进入交易记录页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.7')" >
+        pass</a>
+
+    <div id='div_pt4.7' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.7').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.7: 2017-11-06 22:39:55,866-INFO-进入到首页
+2017-11-06 22:39:55,866-INFO-点击"商户中心"
+2017-11-06 22:39:57,265-INFO-START TEST:TestBCenter.test_coming_deal_record
+2017-11-06 22:39:57,265-INFO-点击交易记录
+2017-11-06 22:40:00,357-INFO-END TEST:TestBCenter.test_coming_deal_record
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.8' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_evaluation: [商户中心][待评价]进入待评价页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.8')" >
+        pass</a>
+
+    <div id='div_pt4.8' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.8').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.8: 2017-11-06 22:40:03,399-INFO-进入到首页
+2017-11-06 22:40:03,399-INFO-点击"商户中心"
+2017-11-06 22:40:05,094-INFO-START TEST:TestBCenter.test_coming_evaluation
+2017-11-06 22:40:05,094-INFO-点击待评价
+2017-11-06 22:40:06,411-INFO-END TEST:TestBCenter.test_coming_evaluation
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.9' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_huihua: [商户中心][我的惠花]进入我的惠花页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.9')" >
+        pass</a>
+
+    <div id='div_pt4.9' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.9').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.9: 2017-11-06 22:40:09,470-INFO-进入到首页
+2017-11-06 22:40:09,470-INFO-点击"商户中心"
+2017-11-06 22:40:10,944-INFO-START TEST:TestBCenter.test_coming_huihua
+2017-11-06 22:40:11,031-INFO-点击我的惠花
+2017-11-06 22:40:11,282-INFO-找到toast"//*[contains(@text, "内测中")]"
+2017-11-06 22:40:11,282-INFO-END TEST:TestBCenter.test_coming_huihua
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.10' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_insurance: [商户中心][保险业务]进入保险业务页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.10')" >
+        pass</a>
+
+    <div id='div_pt4.10' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.10').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.10: 2017-11-06 22:40:14,282-INFO-进入到首页
+2017-11-06 22:40:14,282-INFO-点击"商户中心"
+2017-11-06 22:40:16,014-INFO-START TEST:TestBCenter.test_coming_insurance
+2017-11-06 22:40:16,014-INFO-点击保险业务
+2017-11-06 22:40:16,181-INFO-END TEST:TestBCenter.test_coming_insurance
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.11' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_messageCenter: [商户中心][消息]进入消息中心</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.11')" >
+        pass</a>
+
+    <div id='div_pt4.11' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.11').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.11: 2017-11-06 22:40:31,789-INFO-进入到首页
+2017-11-06 22:40:31,789-INFO-点击"商户中心"
+2017-11-06 22:40:33,451-INFO-START TEST:TestBCenter.test_coming_messageCenter
+2017-11-06 22:40:33,451-INFO-点击消息按钮
+2017-11-06 22:40:34,818-INFO-END TEST:TestBCenter.test_coming_messageCenter
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.12' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_my_collect: [商户中心][我的收藏]进入我的收藏页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.12')" >
+        pass</a>
+
+    <div id='div_pt4.12' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.12').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.12: 2017-11-06 22:40:37,840-INFO-进入到首页
+2017-11-06 22:40:37,840-INFO-点击"商户中心"
+2017-11-06 22:40:39,232-INFO-START TEST:TestBCenter.test_coming_my_collect
+2017-11-06 22:40:39,232-INFO-点击我的收藏
+2017-11-06 22:40:40,398-INFO-END TEST:TestBCenter.test_coming_my_collect
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.13' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_my_coupon: [商户中心][优惠卷]进入优惠卷页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.13')" >
+        pass</a>
+
+    <div id='div_pt4.13' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.13').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.13: 2017-11-06 22:40:43,505-INFO-进入到首页
+2017-11-06 22:40:43,506-INFO-点击"商户中心"
+2017-11-06 22:40:45,159-INFO-START TEST:TestBCenter.test_coming_my_coupon
+2017-11-06 22:40:45,160-INFO-点击优惠卷
+2017-11-06 22:40:46,753-INFO-END TEST:TestBCenter.test_coming_my_coupon
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.14' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_online: [商户中心][在线客服]进入在线客服页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.14')" >
+        pass</a>
+
+    <div id='div_pt4.14' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.14').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.14: 2017-11-06 22:40:49,825-INFO-进入到首页
+2017-11-06 22:40:49,825-INFO-点击"商户中心"
+2017-11-06 22:40:51,278-INFO-START TEST:TestBCenter.test_coming_online
+2017-11-06 22:40:51,278-INFO-在线客服
+2017-11-06 22:40:53,310-INFO-END TEST:TestBCenter.test_coming_online
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.15' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_pre_receive: [商户中心][待收货]进入待收货页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.15')" >
+        pass</a>
+
+    <div id='div_pt4.15' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.15').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.15: 2017-11-06 22:40:56,328-INFO-进入到首页
+2017-11-06 22:40:56,328-INFO-点击"商户中心"
+2017-11-06 22:40:57,765-INFO-START TEST:TestBCenter.test_coming_pre_receive
+2017-11-06 22:40:57,765-INFO-点击待收货
+2017-11-06 22:40:59,033-INFO-END TEST:TestBCenter.test_coming_pre_receive
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.16' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_prepay: [商户中心][待付款]进入待付款页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.16')" >
+        pass</a>
+
+    <div id='div_pt4.16' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.16').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.16: 2017-11-06 22:41:02,006-INFO-进入到首页
+2017-11-06 22:41:02,006-INFO-点击"商户中心"
+2017-11-06 22:41:04,269-INFO-START TEST:TestBCenter.test_coming_prepay
+2017-11-06 22:41:04,269-INFO-点击待付款
+2017-11-06 22:41:05,563-INFO-END TEST:TestBCenter.test_coming_prepay
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.17' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_presend: [商户中心][待发货]进入待发货页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.17')" >
+        pass</a>
+
+    <div id='div_pt4.17' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.17').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.17: 2017-11-06 22:41:08,543-INFO-进入到首页
+2017-11-06 22:41:08,543-INFO-点击"商户中心"
+2017-11-06 22:41:10,247-INFO-START TEST:TestBCenter.test_coming_presend
+2017-11-06 22:41:10,247-INFO-点击待发货
+2017-11-06 22:41:11,587-INFO-END TEST:TestBCenter.test_coming_presend
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.18' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_services: [商户中心][服务与反馈]进入服务与反馈页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.18')" >
+        pass</a>
+
+    <div id='div_pt4.18' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.18').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.18: 2017-11-06 22:41:14,608-INFO-进入到首页
+2017-11-06 22:41:14,609-INFO-点击"商户中心"
+2017-11-06 22:41:16,386-INFO-START TEST:TestBCenter.test_coming_services
+2017-11-06 22:41:16,386-INFO-点击服务与反馈
+2017-11-06 22:41:17,627-INFO-END TEST:TestBCenter.test_coming_services
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt4.19' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_setting: [商户中心][设置]进入设置页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt4.19')" >
+        pass</a>
+
+    <div id='div_pt4.19' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt4.19').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt4.19: 2017-11-06 22:41:20,638-INFO-进入到首页
+2017-11-06 22:41:20,638-INFO-点击"商户中心"
+2017-11-06 22:41:22,419-INFO-START TEST:TestBCenter.test_coming_setting
+2017-11-06 22:41:22,419-INFO-点击"设置"
+2017-11-06 22:41:23,752-INFO-END TEST:TestBCenter.test_coming_setting
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_cashier.TestCashier: 商户中心---收银</td>
+    <td>4</td>
+    <td>4</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c5',4)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt5.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_alipay_cashier: [收银][支付宝]输入1元[确认]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt5.1')" >
+        pass</a>
+
+    <div id='div_pt5.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt5.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt5.1: 2017-11-06 22:41:26,095-INFO-退出driver.
+2017-11-06 22:41:32,134-INFO-开始初始化 appium driver.
+2017-11-06 22:41:32,134-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 22:41:56,481-INFO-appium driver 初始化完毕.
+2017-11-06 22:41:56,482-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 22:41:59,604-INFO-进入引导页
+2017-11-06 22:41:59,654-INFO-上滑屏幕
+2017-11-06 22:42:02,053-INFO-进入到首页
+2017-11-06 22:42:02,053-INFO-点击"商户中心"
+2017-11-06 22:42:02,461-INFO-点击"立即登录"
+2017-11-06 22:42:04,313-INFO-用户名输入框输入xxxxxx
+2017-11-06 22:42:04,882-INFO-密码输入框输入xxxxxx
+2017-11-06 22:42:06,277-INFO-点击"立即登录"
+2017-11-06 22:42:08,923-INFO-进入到首页
+2017-11-06 22:42:08,924-INFO-点击"商户中心"
+2017-11-06 22:42:10,328-INFO-点击急速收银
+2017-11-06 22:42:11,643-INFO-START TEST:TestCashier.test_alipay_cashier
+2017-11-06 22:42:11,643-INFO-点击支付宝
+2017-11-06 22:42:11,703-INFO-金额输入框输入金额
+2017-11-06 22:42:12,849-INFO-点击"确定"
+2017-11-06 22:42:15,052-INFO-END TEST:TestCashier.test_alipay_cashier
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt5.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_balance_record: [收银][余额记录]进入余额记录页</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt5.2')" >
+        pass</a>
+
+    <div id='div_pt5.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt5.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt5.2: 2017-11-06 22:42:17,997-INFO-进入到首页
+2017-11-06 22:42:17,997-INFO-点击"商户中心"
+2017-11-06 22:42:19,426-INFO-点击急速收银
+2017-11-06 22:42:20,753-INFO-START TEST:TestCashier.test_coming_balance_record
+2017-11-06 22:42:20,754-INFO-点击余额记录
+2017-11-06 22:42:24,161-INFO-END TEST:TestCashier.test_coming_balance_record
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt5.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_wechat_cashier: [收银][微信]输入1元[确认]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt5.3')" >
+        pass</a>
+
+    <div id='div_pt5.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt5.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt5.3: 2017-11-06 22:42:27,032-INFO-进入到首页
+2017-11-06 22:42:27,032-INFO-点击"商户中心"
+2017-11-06 22:42:28,446-INFO-点击急速收银
+2017-11-06 22:42:29,714-INFO-START TEST:TestCashier.test_wechat_cashier
+2017-11-06 22:42:29,714-INFO-点击微信
+2017-11-06 22:42:29,772-INFO-金额输入框输入金额
+2017-11-06 22:42:30,817-INFO-点击"确定"
+2017-11-06 22:42:32,962-INFO-END TEST:TestCashier.test_wechat_cashier
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt5.4' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_wechat_pay_no_price: [收银][微信][确认]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt5.4')" >
+        pass</a>
+
+    <div id='div_pt5.4' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt5.4').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt5.4: 2017-11-06 22:42:36,006-INFO-进入到首页
+2017-11-06 22:42:36,006-INFO-点击"商户中心"
+2017-11-06 22:42:37,429-INFO-点击急速收银
+2017-11-06 22:42:38,749-INFO-START TEST:TestCashier.test_wechat_pay_no_price
+2017-11-06 22:42:38,750-INFO-点击微信
+2017-11-06 22:42:38,799-INFO-点击"确定"
+2017-11-06 22:42:39,472-INFO-找到toast"//*[contains(@text, "您还没有输入")]"
+2017-11-06 22:42:39,472-INFO-END TEST:TestCashier.test_wechat_pay_no_price
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_couponCenter.TestCouponCenter: 首页---领卷中心</td>
+    <td>1</td>
+    <td>1</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c6',1)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt6.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coupon_of_my_coupon: [首页][领卷中心][我的优惠卷]检查去领卷中心看看按钮显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt6.1')" >
+        pass</a>
+
+    <div id='div_pt6.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt6.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt6.1: 2017-11-06 22:44:52,301-INFO-进入到首页
+2017-11-06 22:44:52,302-INFO-点击"领卷中心"
+2017-11-06 22:44:54,332-INFO-START TEST:TestCouponCenter.test_coupon_of_my_coupon
+2017-11-06 22:44:54,869-INFO-点击"我的优惠卷"
+2017-11-06 22:44:56,391-INFO-END TEST:TestCouponCenter.test_coupon_of_my_coupon
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_goodsDetails.TestGoodsDetails: 订货分类--商品详情</td>
+    <td>3</td>
+    <td>3</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c7',3)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt7.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_add_shopCar: [商品详情][加入购物车]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt7.1')" >
+        pass</a>
+
+    <div id='div_pt7.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt7.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt7.1: 2017-11-06 22:44:58,570-INFO-退出driver.
+2017-11-06 22:45:04,619-INFO-开始初始化 appium driver.
+2017-11-06 22:45:04,619-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 22:45:28,287-INFO-appium driver 初始化完毕.
+2017-11-06 22:45:28,288-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 22:45:31,371-INFO-进入引导页
+2017-11-06 22:45:31,434-INFO-上滑屏幕
+2017-11-06 22:45:34,248-INFO-进入到首页
+2017-11-06 22:45:34,248-INFO-点击"商户中心"
+2017-11-06 22:45:35,107-INFO-点击"立即登录"
+2017-11-06 22:45:36,951-INFO-用户名输入框输入xxxxxx
+2017-11-06 22:45:37,515-INFO-密码输入框输入xxxxxx
+2017-11-06 22:45:38,884-INFO-点击"立即登录"
+2017-11-06 22:45:41,554-INFO-进入到首页
+2017-11-06 22:45:41,554-INFO-点击"订货分类"
+2017-11-06 22:45:43,036-INFO-点击饮料标签
+2017-11-06 22:45:43,196-INFO-点击商品图片
+2017-11-06 22:45:50,091-INFO-START TEST:TestGoodsDetails.test_add_shopCar
+2017-11-06 22:45:50,091-INFO-点击"加入购物车"
+2017-11-06 22:45:51,452-INFO-获取商品名称
+2017-11-06 22:45:51,500-INFO-点击"确定"
+2017-11-06 22:45:51,579-INFO-点击"返回"
+2017-11-06 22:46:08,188-INFO-点击"购物车"
+2017-11-06 22:46:11,650-INFO-获取商品名称
+2017-11-06 22:46:11,826-INFO-点击"删除商品"
+2017-11-06 22:46:12,661-INFO-得到购物车标签分类数量
+2017-11-06 22:46:12,846-INFO-点击"清空购物车"
+2017-11-06 22:46:14,221-INFO-点击"确定"
+2017-11-06 22:47:11,695-INFO-END TEST:TestGoodsDetails.test_add_shopCar
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt7.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_collect_goods: [商品详情][收藏]收藏商品</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt7.2')" >
+        pass</a>
+
+    <div id='div_pt7.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt7.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt7.2: 2017-11-06 22:49:00,417-INFO-首页加载失败
+2017-11-06 22:49:02,730-INFO-重新打开首页
+2017-11-06 22:49:03,392-INFO-进入到首页
+2017-11-06 22:49:03,392-INFO-点击"订货分类"
+2017-11-06 22:49:05,081-INFO-点击饮料标签
+2017-11-06 22:49:05,235-INFO-点击商品图片
+2017-11-06 22:49:11,557-INFO-START TEST:TestGoodsDetails.test_collect_goods
+2017-11-06 22:49:11,557-INFO-得到收藏状态
+2017-11-06 22:49:11,614-INFO-点击收藏按钮
+2017-11-06 22:49:12,662-INFO-找到toast"//*[contains(@text, "收藏成功")]"
+2017-11-06 22:49:12,662-INFO-END TEST:TestGoodsDetails.test_collect_goods
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt7.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_shopCar: [商品详情][购物车]进入购物车页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt7.3')" >
+        pass</a>
+
+    <div id='div_pt7.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt7.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt7.3: 2017-11-06 22:49:15,680-INFO-进入到首页
+2017-11-06 22:49:15,681-INFO-点击"订货分类"
+2017-11-06 22:49:17,187-INFO-点击饮料标签
+2017-11-06 22:49:17,356-INFO-点击商品图片
+2017-11-06 22:49:21,657-INFO-START TEST:TestGoodsDetails.test_coming_shopCar
+2017-11-06 22:49:21,658-INFO-点击购物车
+2017-11-06 22:49:24,225-INFO-END TEST:TestGoodsDetails.test_coming_shopCar
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_hmEnjoyAlone.TestHmEnjoyAlone: 首页---惠民独享</td>
+    <td>4</td>
+    <td>4</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c8',4)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt8.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_hm_enjoy_alone_of_flash_sale: [首页][限时抢购]检查活动规则、商品名称显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt8.1')" >
+        pass</a>
+
+    <div id='div_pt8.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt8.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt8.1: 2017-11-06 22:49:26,499-INFO-退出driver.
+2017-11-06 22:49:32,527-INFO-开始初始化 appium driver.
+2017-11-06 22:49:32,527-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 22:49:56,921-INFO-appium driver 初始化完毕.
+2017-11-06 22:49:56,922-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 22:50:00,048-INFO-进入引导页
+2017-11-06 22:50:00,113-INFO-上滑屏幕
+2017-11-06 22:50:02,764-INFO-进入到首页
+2017-11-06 22:50:02,764-INFO-点击"商户中心"
+2017-11-06 22:50:03,165-INFO-点击"立即登录"
+2017-11-06 22:50:05,013-INFO-用户名输入框输入xxxxxx
+2017-11-06 22:50:05,633-INFO-密码输入框输入xxxxxx
+2017-11-06 22:50:06,961-INFO-点击"立即登录"
+2017-11-06 22:50:09,545-INFO-进入到首页
+2017-11-06 22:50:09,545-INFO-START TEST:TestHmEnjoyAlone.test_hm_enjoy_alone_of_flash_sale
+2017-11-06 22:50:12,758-INFO-点击"立即抢购"
+2017-11-06 22:50:14,245-INFO-END TEST:TestHmEnjoyAlone.test_hm_enjoy_alone_of_flash_sale
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt8.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_hm_enjoy_alone_of_package_group: [首页][套餐组合]检查立即组合按钮显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt8.2')" >
+        pass</a>
+
+    <div id='div_pt8.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt8.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt8.2: 2017-11-06 22:50:17,306-INFO-进入到首页
+2017-11-06 22:50:17,306-INFO-START TEST:TestHmEnjoyAlone.test_hm_enjoy_alone_of_package_group
+2017-11-06 22:50:20,404-INFO-点击"组合套餐"栏目
+2017-11-06 22:52:13,482-INFO-END TEST:TestHmEnjoyAlone.test_hm_enjoy_alone_of_package_group
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt8.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_hm_enjoy_alone_of_pre_sale: [首页][预售专区]检查敬请期待显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt8.3')" >
+        pass</a>
+
+    <div id='div_pt8.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt8.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt8.3: 2017-11-06 22:52:16,544-INFO-进入到首页
+2017-11-06 22:52:16,545-INFO-START TEST:TestHmEnjoyAlone.test_hm_enjoy_alone_of_pre_sale
+2017-11-06 22:52:19,652-INFO-点击"预售专区"栏目
+2017-11-06 22:52:20,914-INFO-END TEST:TestHmEnjoyAlone.test_hm_enjoy_alone_of_pre_sale
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt8.4' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_hm_enjoy_alone_of_special_offer: [首页][特价专区]检查立即购买按钮显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt8.4')" >
+        pass</a>
+
+    <div id='div_pt8.4' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt8.4').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt8.4: 2017-11-06 22:52:23,927-INFO-进入到首页
+2017-11-06 22:52:23,927-INFO-START TEST:TestHmEnjoyAlone.test_hm_enjoy_alone_of_special_offer
+2017-11-06 22:52:27,045-INFO-点击“特价专区”栏目
+2017-11-06 22:54:21,947-INFO-END TEST:TestHmEnjoyAlone.test_hm_enjoy_alone_of_special_offer
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-warning'>
+    <td>test_login.TestLogin: 登录</td>
+    <td>7</td>
+    <td>4</td>
+    <td>1</td>
+    <td>2</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c9',7)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt9.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_no_remember_pwd: [登录]未记住密码功能验证</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt9.1')" >
+        pass</a>
+
+    <div id='div_pt9.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt9.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt9.1: 2017-11-06 22:55:38,701-INFO-退出driver.
+2017-11-06 22:55:44,826-INFO-开始初始化 appium driver.
+2017-11-06 22:55:44,826-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 22:56:08,158-INFO-appium driver 初始化完毕.
+2017-11-06 22:56:08,159-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 22:56:11,306-INFO-进入引导页
+2017-11-06 22:56:11,384-INFO-上滑屏幕
+2017-11-06 22:56:13,764-INFO-进入到首页
+2017-11-06 22:56:13,765-INFO-点击"商户中心"
+2017-11-06 22:56:14,107-INFO-点击"立即登录"
+2017-11-06 22:56:15,971-INFO-用户名输入框输入xxxxxx
+2017-11-06 22:56:16,536-INFO-密码输入框输入xxxxxx
+2017-11-06 22:56:17,888-INFO-点击"立即登录"
+2017-11-06 22:56:20,426-INFO-点击"商户中心"
+2017-11-06 22:56:21,823-INFO-点击"设置"
+2017-11-06 22:56:23,110-INFO-点击"退出登录"
+2017-11-06 22:56:24,462-INFO-START TEST:TestLogin.test_no_remember_pwd
+2017-11-06 22:56:24,463-INFO-用户名输入框输入xxxxxx
+2017-11-06 22:56:25,024-INFO-密码输入框输入xxxxxx
+2017-11-06 22:56:27,186-INFO-记住密码框勾选:false
+2017-11-06 22:56:27,187-INFO-点击"立即登录"
+2017-11-06 22:56:29,141-INFO-点击"商户中心"
+2017-11-06 22:56:30,485-INFO-点击"设置"
+2017-11-06 22:56:31,775-INFO-点击"退出登录"
+2017-11-06 22:56:36,072-INFO-点击"立即登录"
+2017-11-06 22:56:36,285-INFO-找到toast"//*[contains(@text, "用户ID或者密码不能为空")]"
+2017-11-06 22:56:36,285-INFO-END TEST:TestLogin.test_no_remember_pwd
+2017-11-06 22:56:36,285-INFO-判断当前是否在登录页
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt9.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_phone_invalid: [登录]手机号无效验证</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt9.2')" >
+        pass</a>
+
+    <div id='div_pt9.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt9.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt9.2: 2017-11-06 22:56:36,744-INFO-START TEST:TestLogin.test_phone_invalid
+2017-11-06 22:56:36,744-INFO-点击"手机验证码登录"标签
+2017-11-06 22:56:37,409-INFO-手机号输入框输入11111111111
+2017-11-06 22:56:37,968-INFO-验证码输入框输入11111
+2017-11-06 22:56:39,026-INFO-点击"立即登录"
+2017-11-06 22:56:39,666-INFO-找到toast"//*[contains(@text, "请输入正确的手机号")]"
+2017-11-06 22:56:39,666-INFO-END TEST:TestLogin.test_phone_invalid
+2017-11-06 22:56:39,666-INFO-判断当前是否在登录页
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt9.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_remember_pwd: [登录]记住密码功能验证</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt9.3')" >
+        pass</a>
+
+    <div id='div_pt9.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt9.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt9.3: 2017-11-06 22:56:42,186-INFO-点击"商户密码登录"标签
+2017-11-06 22:56:42,884-INFO-START TEST:TestLogin.test_remember_pwd
+2017-11-06 22:56:42,884-INFO-用户名输入框输入xxxxxx
+2017-11-06 22:56:43,443-INFO-密码输入框输入xxxxxx
+2017-11-06 22:56:45,039-INFO-记住密码框勾选:false
+2017-11-06 22:56:45,039-INFO-点击"记住密码"
+2017-11-06 22:56:45,124-INFO-点击"立即登录"
+2017-11-06 22:56:47,541-INFO-点击"商户中心"
+2017-11-06 22:56:48,910-INFO-点击"设置"
+2017-11-06 22:56:50,201-INFO-点击"退出登录"
+2017-11-06 22:56:51,481-INFO-点击"立即登录"
+2017-11-06 22:56:53,372-INFO-END TEST:TestLogin.test_remember_pwd
+2017-11-06 22:56:53,372-INFO-判断当前是否在登录页
+2017-11-06 22:56:57,073-INFO-当前不在登录页
+2017-11-06 22:56:57,073-INFO-查看当前页面是否存在返回按钮
+2017-11-06 22:56:59,238-INFO-当前页面不存在返回按钮
+2017-11-06 22:56:59,238-INFO-点击"商户中心"
+2017-11-06 22:57:00,590-INFO-点击"设置"
+2017-11-06 22:57:01,878-INFO-点击"退出登录"
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='ft9.4' class='text text-success'>
+    <td class='text text-success'><div class='testcase'>test_username_pwd_error_0_01: [登录]账号密码错误登陆验证 [with *args=('01', '15000000000', '111111')]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_ft9.4')" >
+        retry</a>
+
+    <div id='div_ft9.4' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_ft9.4').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+ft9.4: 2017-11-06 22:57:03,211-INFO-START TEST:TestLogin.test_username_pwd_error
+2017-11-06 22:57:03,211-INFO-用户名输入框输入15000000000
+2017-11-06 22:57:03,776-INFO-密码输入框输入111111
+2017-11-06 22:57:05,241-INFO-点击"立即登录"
+2017-11-06 22:57:10,935-INFO-未找到toast"//*[contains(@text, "用户名或密码错误")]"
+imagehttp://192.168.88.79:8081/huipeitong/image/17-11-06_22_57_10.png
+2017-11-06 22:57:14,296-INFO-END TEST:TestLogin.test_username_pwd_error
+2017-11-06 22:57:14,297-INFO-判断当前是否在登录页
+2017-11-06 22:57:17,509-INFO-当前不在登录页
+2017-11-06 22:57:17,510-INFO-查看当前页面是否存在返回按钮
+2017-11-06 22:57:19,591-INFO-当前页面不存在返回按钮
+2017-11-06 22:57:19,591-INFO-点击"商户中心"
+imagehttp://192.168.88.79:8081/huipeitong/image/17-11-06_22_57_29.png
+Traceback (most recent call last):
+  File "D:\python35\lib\site-packages\parameterized\parameterized.py", line 392, in standalone_func
+    return func(*(a + p.args), **p.kwargs)
+  File "E:\huipeitong\base\api.py", line 164, in wrapper
+    result = func(*args, **kwargs)
+  File "E:\huipeitong\testcase\test_login.py", line 67, in test_username_pwd_error
+    "toast提示未找到"
+AssertionError: False is not true : toast提示未找到
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="http://192.168.88.79:8081/huipeitong/image/17-11-06_22_57_10.png" title="http://192.168.88.79:8081/huipeitong/image/17-11-06_22_57_10.png ">pic</a>
+    </td>
+</tr>
+
+<tr id='ft9.5' class='text text-success'>
+    <td class='text text-warning'><div class='testcase'>test_username_pwd_error_0_01: [登录]账号密码错误登陆验证 [with *args=('01', '15000000000', '111111')]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_ft9.5')" >
+        error</a>
+
+    <div id='div_ft9.5' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_ft9.5').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+ft9.5: Traceback (most recent call last):
+  File "E:\huipeitong\testcase\common.py", line 153, in coming_login_page
+    self.login_page.login_btn, period=3
+  File "E:\huipeitong\base\uiHelper.py", line 87, in find_element
+    raise NoSuchElementException('Cannot find %s in %d times' % (control_info, period))
+selenium.common.exceptions.NoSuchElementException: Message: Cannot find com.huimin.ordersystem:id/login_btlogin in 3 times
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\huipeitong\testcase\common.py", line 160, in coming_login_page
+    self.public_page.backup_btn, period=2
+  File "E:\huipeitong\base\uiHelper.py", line 87, in find_element
+    raise NoSuchElementException('Cannot find %s in %d times' % (control_info, period))
+selenium.common.exceptions.NoSuchElementException: Message: Cannot find com.huimin.ordersystem:id/title_left_img in 2 times
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\huipeitong\base\api.py", line 140, in wrapper
+    result = func(*args, **kwargs)
+  File "E:\huipeitong\testcase\test_login.py", line 26, in tearDown
+    self.common.coming_login_page()
+  File "E:\huipeitong\testcase\common.py", line 168, in coming_login_page
+    self.public_page.click_b_center()
+  File "E:\huipeitong\pageobject\public_page.py", line 60, in click_b_center
+    self.driver.click(self.b_center)
+  File "E:\huipeitong\base\uiHelper.py", line 174, in click
+    self.find_element(element_info).click()
+  File "E:\huipeitong\base\uiHelper.py", line 87, in find_element
+    raise NoSuchElementException('Cannot find %s in %d times' % (control_info, period))
+selenium.common.exceptions.NoSuchElementException: Message: Cannot find com.huimin.ordersystem:id/include_tab_center in 10 times
+
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='ft9.6' class='text text-success'>
+    <td class='text text-danger'><div class='testcase'>test_username_pwd_error_0_01: [登录]账号密码错误登陆验证 [with *args=('01', '15000000000', '111111')]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_ft9.6')" >
+        fail</a>
+
+    <div id='div_ft9.6' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_ft9.6').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+ft9.6: 2017-11-06 22:57:35,104-INFO-点击"商户密码登录"标签
+2017-11-06 22:57:37,055-INFO-START TEST:TestLogin.test_username_pwd_error
+2017-11-06 22:57:37,055-INFO-用户名输入框输入15000000000
+2017-11-06 22:57:37,618-INFO-密码输入框输入111111
+2017-11-06 22:57:38,665-INFO-点击"立即登录"
+2017-11-06 22:57:44,305-INFO-未找到toast"//*[contains(@text, "用户名或密码错误")]"
+imagehttp://192.168.88.79:8081/huipeitong/image/17-11-06_22_57_44.png
+2017-11-06 22:57:47,293-INFO-END TEST:TestLogin.test_username_pwd_error
+2017-11-06 22:57:47,293-INFO-判断当前是否在登录页
+2017-11-06 22:57:50,418-INFO-当前不在登录页
+2017-11-06 22:57:50,418-INFO-查看当前页面是否存在返回按钮
+2017-11-06 22:57:52,504-INFO-当前页面不存在返回按钮
+2017-11-06 22:57:52,504-INFO-点击"商户中心"
+imagehttp://192.168.88.79:8081/huipeitong/image/17-11-06_22_58_02.png
+Traceback (most recent call last):
+  File "D:\python35\lib\site-packages\parameterized\parameterized.py", line 392, in standalone_func
+    return func(*(a + p.args), **p.kwargs)
+  File "E:\huipeitong\base\api.py", line 164, in wrapper
+    result = func(*args, **kwargs)
+  File "E:\huipeitong\testcase\test_login.py", line 67, in test_username_pwd_error
+    "toast提示未找到"
+AssertionError: False is not true : toast提示未找到
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="http://192.168.88.79:8081/huipeitong/image/17-11-06_22_57_44.png" title="http://192.168.88.79:8081/huipeitong/image/17-11-06_22_57_44.png ">pic</a>
+    </td>
+</tr>
+
+<tr id='ft9.7' class='text text-success'>
+    <td class='text text-warning'><div class='testcase'>test_username_pwd_error_0_01: [登录]账号密码错误登陆验证 [with *args=('01', '15000000000', '111111')]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_ft9.7')" >
+        error</a>
+
+    <div id='div_ft9.7' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_ft9.7').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+ft9.7: Traceback (most recent call last):
+  File "E:\huipeitong\testcase\common.py", line 153, in coming_login_page
+    self.login_page.login_btn, period=3
+  File "E:\huipeitong\base\uiHelper.py", line 87, in find_element
+    raise NoSuchElementException('Cannot find %s in %d times' % (control_info, period))
+selenium.common.exceptions.NoSuchElementException: Message: Cannot find com.huimin.ordersystem:id/login_btlogin in 3 times
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\huipeitong\testcase\common.py", line 160, in coming_login_page
+    self.public_page.backup_btn, period=2
+  File "E:\huipeitong\base\uiHelper.py", line 87, in find_element
+    raise NoSuchElementException('Cannot find %s in %d times' % (control_info, period))
+selenium.common.exceptions.NoSuchElementException: Message: Cannot find com.huimin.ordersystem:id/title_left_img in 2 times
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "E:\huipeitong\base\api.py", line 140, in wrapper
+    result = func(*args, **kwargs)
+  File "E:\huipeitong\testcase\test_login.py", line 26, in tearDown
+    self.common.coming_login_page()
+  File "E:\huipeitong\testcase\common.py", line 168, in coming_login_page
+    self.public_page.click_b_center()
+  File "E:\huipeitong\pageobject\public_page.py", line 60, in click_b_center
+    self.driver.click(self.b_center)
+  File "E:\huipeitong\base\uiHelper.py", line 174, in click
+    self.find_element(element_info).click()
+  File "E:\huipeitong\base\uiHelper.py", line 87, in find_element
+    raise NoSuchElementException('Cannot find %s in %d times' % (control_info, period))
+selenium.common.exceptions.NoSuchElementException: Message: Cannot find com.huimin.ordersystem:id/include_tab_center in 10 times
+
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt9.8' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_username_pwd_error_1_02: [登录]账号密码错误登陆验证 [with *args=('02', '15002913879', '111111')]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt9.8')" >
+        pass</a>
+
+    <div id='div_pt9.8' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt9.8').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt9.8: 2017-11-06 22:58:07,990-INFO-点击"商户密码登录"标签
+2017-11-06 22:58:10,713-INFO-START TEST:TestLogin.test_username_pwd_error
+2017-11-06 22:58:10,713-INFO-用户名输入框输入15002913879
+2017-11-06 22:58:11,275-INFO-密码输入框输入111111
+2017-11-06 22:58:12,323-INFO-点击"立即登录"
+2017-11-06 22:58:13,877-INFO-找到toast"//*[contains(@text, "用户名或密码错误")]"
+2017-11-06 22:58:13,877-INFO-END TEST:TestLogin.test_username_pwd_error
+2017-11-06 22:58:13,877-INFO-判断当前是否在登录页
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_messageCenter.TestMessageCenter: 首页---消息中心/惠民头条消息</td>
+    <td>2</td>
+    <td>2</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c10',2)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt10.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_message_page: [首页][消息中心]检查商品通知、系统通知、订单通知标签显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt10.1')" >
+        pass</a>
+
+    <div id='div_pt10.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt10.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt10.1: 2017-11-06 22:58:13,907-INFO-退出driver.
+2017-11-06 22:58:20,212-INFO-开始初始化 appium driver.
+2017-11-06 22:58:20,212-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 22:58:44,416-INFO-appium driver 初始化完毕.
+2017-11-06 22:58:44,416-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 22:58:47,515-INFO-进入引导页
+2017-11-06 22:58:47,564-INFO-上滑屏幕
+2017-11-06 22:58:49,985-INFO-进入到首页
+2017-11-06 22:58:49,986-INFO-点击"商户中心"
+2017-11-06 22:58:50,331-INFO-点击"立即登录"
+2017-11-06 22:58:52,211-INFO-用户名输入框输入xxxxxx
+2017-11-06 22:58:52,779-INFO-密码输入框输入xxxxxx
+2017-11-06 22:58:54,151-INFO-点击"立即登录"
+2017-11-06 22:58:56,815-INFO-进入到首页
+2017-11-06 22:58:56,815-INFO-START TEST:TestMessageCenter.test_coming_message_page
+2017-11-06 22:58:56,815-INFO-点击右侧"消息"
+2017-11-06 22:58:58,290-INFO-点击"返回"
+2017-11-06 22:59:11,524-INFO-END TEST:TestMessageCenter.test_coming_message_page
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt10.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_message_page_from_headline: [首页][惠民头条]检查商品通知、系统通知、订单通知标签显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt10.2')" >
+        pass</a>
+
+    <div id='div_pt10.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt10.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt10.2: 2017-11-06 22:59:14,582-INFO-进入到首页
+2017-11-06 22:59:14,582-INFO-START TEST:TestMessageCenter.test_coming_message_page_from_headline
+2017-11-06 22:59:14,582-INFO-点击"惠民头条"
+2017-11-06 22:59:16,052-INFO-点击"返回"
+2017-11-06 22:59:29,347-INFO-END TEST:TestMessageCenter.test_coming_message_page_from_headline
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_myCoupon.TestMyCoupon: 商户中心---优惠卷</td>
+    <td>8</td>
+    <td>8</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c11',8)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt11.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_coupon_center: [优惠卷][去领卷中心看看]进入领卷中心</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt11.1')" >
+        pass</a>
+
+    <div id='div_pt11.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt11.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt11.1: 2017-11-06 22:59:31,743-INFO-退出driver.
+2017-11-06 22:59:37,863-INFO-开始初始化 appium driver.
+2017-11-06 22:59:37,863-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 23:00:02,238-INFO-appium driver 初始化完毕.
+2017-11-06 23:00:02,238-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 23:00:05,324-INFO-进入引导页
+2017-11-06 23:00:05,386-INFO-上滑屏幕
+2017-11-06 23:00:07,756-INFO-进入到首页
+2017-11-06 23:00:07,756-INFO-点击"商户中心"
+2017-11-06 23:00:08,121-INFO-点击"立即登录"
+2017-11-06 23:00:09,961-INFO-用户名输入框输入xxxxxx
+2017-11-06 23:00:10,526-INFO-密码输入框输入xxxxxx
+2017-11-06 23:00:11,835-INFO-点击"立即登录"
+2017-11-06 23:00:14,548-INFO-进入到首页
+2017-11-06 23:00:14,548-INFO-点击"商户中心"
+2017-11-06 23:00:15,952-INFO-点击优惠卷
+2017-11-06 23:00:17,352-INFO-START TEST:TestMyCoupon.test_coming_coupon_center
+2017-11-06 23:00:17,352-INFO-点击去领卷中心看看
+2017-11-06 23:00:19,821-INFO-END TEST:TestMyCoupon.test_coming_coupon_center
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt11.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_use_rule: [优惠卷][使用规则]进入使用规则页</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt11.2')" >
+        pass</a>
+
+    <div id='div_pt11.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt11.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt11.2: 2017-11-06 23:00:22,729-INFO-进入到首页
+2017-11-06 23:00:22,729-INFO-点击"商户中心"
+2017-11-06 23:00:24,234-INFO-点击优惠卷
+2017-11-06 23:00:25,773-INFO-START TEST:TestMyCoupon.test_coming_use_rule
+2017-11-06 23:00:25,773-INFO-点击使用规则
+2017-11-06 23:00:27,988-INFO-END TEST:TestMyCoupon.test_coming_use_rule
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt11.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_convert_error: [优惠卷]输入错误兑换码点击兑换</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt11.3')" >
+        pass</a>
+
+    <div id='div_pt11.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt11.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt11.3: 2017-11-06 23:00:31,007-INFO-进入到首页
+2017-11-06 23:00:31,007-INFO-点击"商户中心"
+2017-11-06 23:00:32,416-INFO-点击优惠卷
+2017-11-06 23:00:33,876-INFO-START TEST:TestMyCoupon.test_convert_error
+2017-11-06 23:00:33,876-INFO-兑换码输入框输入内容
+2017-11-06 23:00:34,458-INFO-点击兑换
+2017-11-06 23:00:36,048-INFO-点击"确定"
+2017-11-06 23:00:36,114-INFO-END TEST:TestMyCoupon.test_convert_error
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt11.4' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_convert_error_format: [优惠卷]输入错误格式兑换码点击兑换</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt11.4')" >
+        pass</a>
+
+    <div id='div_pt11.4' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt11.4').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt11.4: 2017-11-06 23:00:39,154-INFO-进入到首页
+2017-11-06 23:00:39,155-INFO-点击"商户中心"
+2017-11-06 23:00:40,686-INFO-点击优惠卷
+2017-11-06 23:00:42,147-INFO-START TEST:TestMyCoupon.test_convert_error_format
+2017-11-06 23:00:42,148-INFO-兑换码输入框输入内容
+2017-11-06 23:00:42,736-INFO-点击兑换
+2017-11-06 23:00:44,467-INFO-点击"确定"
+2017-11-06 23:00:44,532-INFO-END TEST:TestMyCoupon.test_convert_error_format
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt11.5' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_convert_null: [优惠卷]不输入兑换码点击兑换</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt11.5')" >
+        pass</a>
+
+    <div id='div_pt11.5' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt11.5').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt11.5: 2017-11-06 23:00:47,515-INFO-进入到首页
+2017-11-06 23:00:47,516-INFO-点击"商户中心"
+2017-11-06 23:00:48,938-INFO-点击优惠卷
+2017-11-06 23:00:50,409-INFO-START TEST:TestMyCoupon.test_convert_null
+2017-11-06 23:00:50,409-INFO-点击兑换
+2017-11-06 23:00:51,700-INFO-点击"确定"
+2017-11-06 23:00:51,766-INFO-END TEST:TestMyCoupon.test_convert_null
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt11.6' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_past_due: [优惠卷]切换至已过期标签</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt11.6')" >
+        pass</a>
+
+    <div id='div_pt11.6' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt11.6').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt11.6: 2017-11-06 23:00:54,774-INFO-进入到首页
+2017-11-06 23:00:54,774-INFO-点击"商户中心"
+2017-11-06 23:00:56,182-INFO-点击优惠卷
+2017-11-06 23:00:57,581-INFO-START TEST:TestMyCoupon.test_past_due
+2017-11-06 23:00:57,581-INFO-点击已过期标签
+2017-11-06 23:00:58,638-INFO-END TEST:TestMyCoupon.test_past_due
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt11.7' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_switch_title: [优惠卷][现金卷]切换卷类别</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt11.7')" >
+        pass</a>
+
+    <div id='div_pt11.7' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt11.7').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt11.7: 2017-11-06 23:01:01,706-INFO-进入到首页
+2017-11-06 23:01:01,706-INFO-点击"商户中心"
+2017-11-06 23:01:03,131-INFO-点击优惠卷
+2017-11-06 23:01:04,528-INFO-START TEST:TestMyCoupon.test_switch_title
+2017-11-06 23:01:04,528-INFO-点击优惠卷标题
+2017-11-06 23:01:05,609-INFO-点击现金卷标签
+2017-11-06 23:01:06,540-INFO-END TEST:TestMyCoupon.test_switch_title
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt11.8' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_used: [优惠卷]切换至已使用标签</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt11.8')" >
+        pass</a>
+
+    <div id='div_pt11.8' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt11.8').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt11.8: 2017-11-06 23:01:09,603-INFO-进入到首页
+2017-11-06 23:01:09,603-INFO-点击"商户中心"
+2017-11-06 23:01:11,025-INFO-点击优惠卷
+2017-11-06 23:01:12,522-INFO-START TEST:TestMyCoupon.test_used
+2017-11-06 23:01:12,522-INFO-点击已使用标签
+2017-11-06 23:01:14,016-INFO-END TEST:TestMyCoupon.test_used
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_my_collect.TestMyCollect: 商户中心---我的收藏</td>
+    <td>3</td>
+    <td>3</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c12',3)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt12.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_collect_goods: [我的收藏]收藏列表显示数据验证</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt12.1')" >
+        pass</a>
+
+    <div id='div_pt12.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt12.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt12.1: 2017-11-06 23:01:16,420-INFO-退出driver.
+2017-11-06 23:01:22,504-INFO-开始初始化 appium driver.
+2017-11-06 23:01:22,504-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 23:01:46,496-INFO-appium driver 初始化完毕.
+2017-11-06 23:01:46,497-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 23:01:49,612-INFO-进入引导页
+2017-11-06 23:01:49,668-INFO-上滑屏幕
+2017-11-06 23:01:52,304-INFO-进入到首页
+2017-11-06 23:01:52,305-INFO-点击"商户中心"
+2017-11-06 23:01:52,651-INFO-点击"立即登录"
+2017-11-06 23:01:54,530-INFO-用户名输入框输入xxxxxx
+2017-11-06 23:01:55,099-INFO-密码输入框输入xxxxxx
+2017-11-06 23:01:56,463-INFO-点击"立即登录"
+2017-11-06 23:01:59,114-INFO-进入到首页
+2017-11-06 23:01:59,114-INFO-点击"商户中心"
+2017-11-06 23:02:00,529-INFO-点击我的收藏
+2017-11-06 23:02:01,970-INFO-START TEST:TestMyCollect.test_collect_goods
+2017-11-06 23:02:02,030-INFO-点击编辑按钮
+2017-11-06 23:02:02,183-INFO-点击全选框
+2017-11-06 23:02:02,773-INFO-点击删除
+2017-11-06 23:02:03,416-INFO-点击"确定"
+2017-11-06 23:02:04,565-INFO-点击"返回"
+2017-11-06 23:02:18,281-INFO-点击"订货分类"
+2017-11-06 23:02:19,703-INFO-点击商品图片
+2017-11-06 23:02:26,465-INFO-获取商品名称
+2017-11-06 23:02:26,523-INFO-点击收藏按钮
+2017-11-06 23:02:27,424-INFO-点击"返回"
+2017-11-06 23:02:40,595-INFO-点击"商户中心"
+2017-11-06 23:02:40,960-INFO-点击我的收藏
+2017-11-06 23:02:43,216-INFO-得到收藏商品名称
+2017-11-06 23:02:43,263-INFO-END TEST:TestMyCollect.test_collect_goods
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt12.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_shopCar: [我的收藏][购物车]进入购物车页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt12.2')" >
+        pass</a>
+
+    <div id='div_pt12.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt12.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt12.2: 2017-11-06 23:02:46,227-INFO-进入到首页
+2017-11-06 23:02:46,227-INFO-点击"商户中心"
+2017-11-06 23:02:47,649-INFO-点击我的收藏
+2017-11-06 23:02:48,972-INFO-START TEST:TestMyCollect.test_coming_shopCar
+2017-11-06 23:02:48,972-INFO-点击购物车
+2017-11-06 23:02:51,722-INFO-END TEST:TestMyCollect.test_coming_shopCar
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt12.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_no_collect: [我的收藏]无收藏显示没有收藏任何商品背景图</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt12.3')" >
+        pass</a>
+
+    <div id='div_pt12.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt12.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt12.3: 2017-11-06 23:02:54,608-INFO-进入到首页
+2017-11-06 23:02:54,608-INFO-点击"商户中心"
+2017-11-06 23:02:56,113-INFO-点击我的收藏
+2017-11-06 23:02:57,424-INFO-START TEST:TestMyCollect.test_no_collect
+2017-11-06 23:02:57,480-INFO-点击编辑按钮
+2017-11-06 23:02:57,636-INFO-点击全选框
+2017-11-06 23:02:58,232-INFO-点击删除
+2017-11-06 23:02:58,890-INFO-点击"确定"
+2017-11-06 23:02:59,871-INFO-END TEST:TestMyCollect.test_no_collect
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_oderGoods.TestOrderPage: 订货分类</td>
+    <td>10</td>
+    <td>10</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c13',10)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt13.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_brand_sort: [订货分类][饮料][品牌筛选][康师傅][统一]筛选检查</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt13.1')" >
+        pass</a>
+
+    <div id='div_pt13.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt13.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt13.1: 2017-11-06 23:03:02,243-INFO-退出driver.
+2017-11-06 23:03:08,346-INFO-开始初始化 appium driver.
+2017-11-06 23:03:08,346-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 23:03:31,918-INFO-appium driver 初始化完毕.
+2017-11-06 23:03:31,919-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 23:03:35,089-INFO-进入引导页
+2017-11-06 23:03:35,151-INFO-上滑屏幕
+2017-11-06 23:03:37,513-INFO-进入到首页
+2017-11-06 23:03:37,513-INFO-点击"商户中心"
+2017-11-06 23:03:37,849-INFO-点击"立即登录"
+2017-11-06 23:03:39,768-INFO-用户名输入框输入xxxxxx
+2017-11-06 23:03:40,334-INFO-密码输入框输入xxxxxx
+2017-11-06 23:03:41,621-INFO-点击"立即登录"
+2017-11-06 23:03:44,171-INFO-进入到首页
+2017-11-06 23:03:44,172-INFO-点击"订货分类"
+2017-11-06 23:03:45,619-INFO-START TEST:TestOrderPage.test_brand_sort
+2017-11-06 23:03:45,619-INFO-点击饮料标签
+2017-11-06 23:03:45,798-INFO-点击品牌筛选
+2017-11-06 23:03:48,632-INFO-点击康师傅标签
+2017-11-06 23:03:50,590-INFO-返回商品名称康师傅经典炼乳味奶茶50
+2017-11-06 23:03:50,590-INFO-点击统一标签
+2017-11-06 23:03:52,507-INFO-返回商品名称统一海之言黑加仑味500
+2017-11-06 23:03:52,508-INFO-END TEST:TestOrderPage.test_brand_sort
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt13.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_category_sort: [订货分类][饮料][分类筛选][果汁饮料][碳酸饮料]筛选检查</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt13.2')" >
+        pass</a>
+
+    <div id='div_pt13.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt13.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt13.2: 2017-11-06 23:03:55,663-INFO-进入到首页
+2017-11-06 23:03:55,663-INFO-点击"订货分类"
+2017-11-06 23:03:57,204-INFO-START TEST:TestOrderPage.test_category_sort
+2017-11-06 23:03:57,204-INFO-点击饮料标签
+2017-11-06 23:04:00,338-INFO-点击果汁饮料标签
+2017-11-06 23:04:02,768-INFO-返回商品名称康师傅水蜜桃2L
+2017-11-06 23:04:02,768-INFO-点击碳酸饮料
+2017-11-06 23:04:04,892-INFO-返回商品名称芬达水蜜桃味2L
+2017-11-06 23:04:04,892-INFO-END TEST:TestOrderPage.test_category_sort
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt13.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_check_goods_details: [订货分类][商品详情]检查商品名称显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt13.3')" >
+        pass</a>
+
+    <div id='div_pt13.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt13.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt13.3: 2017-11-06 23:04:08,028-INFO-进入到首页
+2017-11-06 23:04:08,028-INFO-点击"订货分类"
+2017-11-06 23:04:09,848-INFO-START TEST:TestOrderPage.test_check_goods_details
+2017-11-06 23:04:11,494-INFO-返回商品名称红牛250ml听装
+2017-11-06 23:04:11,495-INFO-点击商品图片
+2017-11-06 23:04:16,229-INFO-获取商品名称
+2017-11-06 23:04:16,274-INFO-点击"返回"
+2017-11-06 23:04:29,460-INFO-END TEST:TestOrderPage.test_check_goods_details
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt13.4' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_check_left_view: [订货分类]查看左侧分类列表有无商品</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt13.4')" >
+        pass</a>
+
+    <div id='div_pt13.4' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt13.4').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt13.4: 2017-11-06 23:04:32,442-INFO-进入到首页
+2017-11-06 23:04:32,442-INFO-点击"订货分类"
+2017-11-06 23:04:34,032-INFO-START TEST:TestOrderPage.test_check_left_view
+2017-11-06 23:04:34,111-INFO-获取左侧分类列表
+2017-11-06 23:04:35,541-INFO-返回商品名称红牛250ml听装
+2017-11-06 23:04:35,671-INFO-返回商品名称红牛250ml听装
+2017-11-06 23:04:37,578-INFO-返回商品名称青岛经典啤酒500ml
+2017-11-06 23:04:37,692-INFO-返回商品名称青岛经典啤酒500ml
+2017-11-06 23:04:39,091-INFO-返回商品名称可口可乐水动乐西柚味饮料
+2017-11-06 23:04:39,210-INFO-返回商品名称可口可乐水动乐西柚味饮料
+2017-11-06 23:04:41,236-INFO-返回商品名称回头客原味华夫饼120g
+2017-11-06 23:04:41,371-INFO-返回商品名称回头客原味华夫饼120g
+2017-11-06 23:04:43,376-INFO-返回商品名称喜乐菌优多乳酸菌饮品33
+2017-11-06 23:04:43,511-INFO-返回商品名称喜乐菌优多乳酸菌饮品33
+2017-11-06 23:04:45,757-INFO-返回商品名称京华香米绿袋10kg
+2017-11-06 23:04:45,892-INFO-返回商品名称京华香米绿袋10kg
+2017-11-06 23:04:47,849-INFO-返回商品名称六必居干酱250g
+2017-11-06 23:04:47,972-INFO-返回商品名称六必居干酱250g
+2017-11-06 23:04:49,949-INFO-返回商品名称雕牌透明皂促销优惠装10
+2017-11-06 23:04:50,075-INFO-返回商品名称雕牌透明皂促销优惠装10
+2017-11-06 23:04:51,988-INFO-返回商品名称*晨光自粘包书膜AWT9
+2017-11-06 23:04:52,111-INFO-返回商品名称*晨光自粘包书膜AWT9
+2017-11-06 23:04:53,992-INFO-返回商品名称奥美洁婴儿细轴纸棒棉花棒
+2017-11-06 23:04:54,109-INFO-返回商品名称奥美洁婴儿细轴纸棒棉花棒
+2017-11-06 23:04:55,932-INFO-返回商品名称惠民垃圾桶
+2017-11-06 23:04:56,068-INFO-返回商品名称惠民垃圾桶
+2017-11-06 23:04:58,017-INFO-返回商品名称中商惠民素馅饼100g
+2017-11-06 23:04:58,146-INFO-返回商品名称中商惠民素馅饼100g
+2017-11-06 23:05:00,089-INFO-返回商品名称微山湖咸鸭蛋62g*8
+2017-11-06 23:05:00,200-INFO-返回商品名称微山湖咸鸭蛋62g*8
+2017-11-06 23:05:00,677-INFO-获取左侧分类列表
+2017-11-06 23:05:02,920-INFO-返回商品名称中商惠民素馅饼100g
+2017-11-06 23:05:03,033-INFO-返回商品名称中商惠民素馅饼100g
+2017-11-06 23:05:04,623-INFO-返回商品名称微山湖咸鸭蛋62g*8
+2017-11-06 23:05:04,737-INFO-返回商品名称微山湖咸鸭蛋62g*8
+2017-11-06 23:05:06,507-INFO-返回商品名称香雪香浓巧克力脆皮面包8
+2017-11-06 23:05:06,624-INFO-返回商品名称香雪香浓巧克力脆皮面包8
+2017-11-06 23:05:08,479-INFO-返回商品名称中国体育彩票顶呱刮10元
+2017-11-06 23:05:08,595-INFO-返回商品名称中国体育彩票顶呱刮10元
+2017-11-06 23:05:10,569-INFO-返回商品名称*西班牙阿兰达田帕尼优干
+2017-11-06 23:05:10,699-INFO-返回商品名称*西班牙阿兰达田帕尼优干
+2017-11-06 23:05:10,699-INFO-END TEST:TestOrderPage.test_check_left_view
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt13.5' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_search_page: [订货分类][搜索]检查热门推荐标签显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt13.5')" >
+        pass</a>
+
+    <div id='div_pt13.5' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt13.5').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt13.5: 2017-11-06 23:05:13,740-INFO-进入到首页
+2017-11-06 23:05:13,740-INFO-点击"订货分类"
+2017-11-06 23:05:15,218-INFO-START TEST:TestOrderPage.test_coming_search_page
+2017-11-06 23:05:15,218-INFO-点击"搜索"
+2017-11-06 23:05:16,387-INFO-点击"返回"
+2017-11-06 23:05:29,665-INFO-END TEST:TestOrderPage.test_coming_search_page
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt13.6' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_shopping_list: [订货分类][常购清单]检查常购清单标签显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt13.6')" >
+        pass</a>
+
+    <div id='div_pt13.6' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt13.6').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt13.6: 2017-11-06 23:05:32,818-INFO-进入到首页
+2017-11-06 23:05:32,818-INFO-点击"订货分类"
+2017-11-06 23:05:34,675-INFO-START TEST:TestOrderPage.test_coming_shopping_list
+2017-11-06 23:05:34,675-INFO-点击"常购清单"
+2017-11-06 23:05:37,114-INFO-END TEST:TestOrderPage.test_coming_shopping_list
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt13.7' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_filter_sort: [订货分类][饮料][排序筛选][价格最低][价格最高]筛选检查</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt13.7')" >
+        pass</a>
+
+    <div id='div_pt13.7' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt13.7').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt13.7: 2017-11-06 23:05:40,105-INFO-进入到首页
+2017-11-06 23:05:40,106-INFO-点击"订货分类"
+2017-11-06 23:05:41,631-INFO-START TEST:TestOrderPage.test_filter_sort
+2017-11-06 23:05:41,632-INFO-点击饮料标签
+2017-11-06 23:05:41,809-INFO-点击排序筛选
+2017-11-06 23:05:44,238-INFO-点击价格最低
+2017-11-06 23:05:46,220-INFO-返回商品名称伊藤园祁门红茶无糖500
+2017-11-06 23:05:46,220-INFO-点击价格最高
+2017-11-06 23:05:48,144-INFO-返回商品名称红牛强化型饮料250ml
+2017-11-06 23:05:48,144-INFO-END TEST:TestOrderPage.test_filter_sort
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt13.8' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_recommend: [订货分类]推荐列表不显示分类品牌标签</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt13.8')" >
+        pass</a>
+
+    <div id='div_pt13.8' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt13.8').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt13.8: 2017-11-06 23:05:51,128-INFO-进入到首页
+2017-11-06 23:05:51,128-INFO-点击"订货分类"
+2017-11-06 23:05:52,599-INFO-START TEST:TestOrderPage.test_recommend
+2017-11-06 23:05:55,122-INFO-END TEST:TestOrderPage.test_recommend
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt13.9' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_shipping_address: [订货分类][收货地址]查看收货地址是否显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt13.9')" >
+        pass</a>
+
+    <div id='div_pt13.9' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt13.9').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt13.9: 2017-11-06 23:05:58,095-INFO-进入到首页
+2017-11-06 23:05:58,095-INFO-点击"订货分类"
+2017-11-06 23:05:59,833-INFO-START TEST:TestOrderPage.test_shipping_address
+2017-11-06 23:05:59,834-INFO-点击收货地址
+2017-11-06 23:06:00,878-INFO-END TEST:TestOrderPage.test_shipping_address
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt13.10' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_shop_car_add: [订货分类]添加商品至购物车</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt13.10')" >
+        pass</a>
+
+    <div id='div_pt13.10' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt13.10').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt13.10: 2017-11-06 23:06:03,962-INFO-进入到首页
+2017-11-06 23:06:03,963-INFO-点击"订货分类"
+2017-11-06 23:06:05,551-INFO-START TEST:TestOrderPage.test_shop_car_add
+2017-11-06 23:06:05,552-INFO-点击加入购物车按钮
+2017-11-06 23:06:08,573-INFO-获取商品名称
+2017-11-06 23:06:08,618-INFO-点击"确定"
+2017-11-06 23:06:08,693-INFO-点击"购物车"
+2017-11-06 23:06:16,471-INFO-获取商品名称
+2017-11-06 23:06:16,589-INFO-点击"删除商品"
+2017-11-06 23:06:17,437-INFO-得到购物车标签分类数量
+2017-11-06 23:06:17,659-INFO-点击"清空购物车"
+2017-11-06 23:06:19,024-INFO-点击"确定"
+2017-11-06 23:07:16,228-INFO-END TEST:TestOrderPage.test_shop_car_add
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_oftenShoppingList.TestOftenShoppingList: 首页---常购清单</td>
+    <td>3</td>
+    <td>3</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c14',3)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt14.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_shopping_list: [首页][常购清单]检查推荐商品价格显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt14.1')" >
+        pass</a>
+
+    <div id='div_pt14.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt14.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt14.1: 2017-11-06 23:07:18,506-INFO-退出driver.
+2017-11-06 23:07:24,621-INFO-开始初始化 appium driver.
+2017-11-06 23:07:24,621-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 23:07:48,196-INFO-appium driver 初始化完毕.
+2017-11-06 23:07:48,197-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 23:07:51,314-INFO-进入引导页
+2017-11-06 23:07:51,381-INFO-上滑屏幕
+2017-11-06 23:08:56,926-INFO-进入到首页
+2017-11-06 23:08:56,926-INFO-点击"商户中心"
+2017-11-06 23:08:57,227-INFO-点击"立即登录"
+2017-11-06 23:08:59,048-INFO-用户名输入框输入xxxxxx
+2017-11-06 23:08:59,609-INFO-密码输入框输入xxxxxx
+2017-11-06 23:09:01,036-INFO-点击"立即登录"
+2017-11-06 23:09:03,763-INFO-进入到首页
+2017-11-06 23:09:03,763-INFO-START TEST:TestOftenShoppingList.test_coming_shopping_list
+2017-11-06 23:09:03,764-INFO-点击"常购清单"
+2017-11-06 23:09:06,138-INFO-END TEST:TestOftenShoppingList.test_coming_shopping_list
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt14.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_shopping_list_add_shopCar: [首页][常购清单]推荐商品加入购物车</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt14.2')" >
+        pass</a>
+
+    <div id='div_pt14.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt14.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt14.2: 2017-11-06 23:09:09,114-INFO-进入到首页
+2017-11-06 23:09:09,115-INFO-START TEST:TestOftenShoppingList.test_shopping_list_add_shopCar
+2017-11-06 23:09:09,115-INFO-点击"常购清单"
+2017-11-06 23:09:11,267-INFO-点击加入购物车按钮
+2017-11-06 23:09:12,728-INFO-获取商品名称
+2017-11-06 23:09:12,774-INFO-点击"确定"
+2017-11-06 23:09:12,847-INFO-点击右侧“购物车”
+2017-11-06 23:09:19,929-INFO-获取商品名称
+2017-11-06 23:09:20,002-INFO-点击"删除商品"
+2017-11-06 23:09:20,783-INFO-得到购物车标签分类数量
+2017-11-06 23:09:20,939-INFO-点击"清空购物车"
+2017-11-06 23:09:21,950-INFO-点击"确定"
+2017-11-06 23:10:17,903-INFO-END TEST:TestOftenShoppingList.test_shopping_list_add_shopCar
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt14.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_shopping_list_coming_goods_details: [首页][常购清单][商品详情]检查商品详情标题显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt14.3')" >
+        pass</a>
+
+    <div id='div_pt14.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt14.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt14.3: 2017-11-06 23:10:20,901-INFO-进入到首页
+2017-11-06 23:10:20,901-INFO-START TEST:TestOftenShoppingList.test_shopping_list_coming_goods_details
+2017-11-06 23:10:20,901-INFO-点击"常购清单"
+2017-11-06 23:10:23,254-INFO-点击推荐商品价格
+2017-11-06 23:10:27,994-INFO-END TEST:TestOftenShoppingList.test_shopping_list_coming_goods_details
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-danger'>
+    <td>test_online_customer_service.TestOnlineCustomerService: 商户中心---在线客服</td>
+    <td>9</td>
+    <td>8</td>
+    <td>1</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c15',9)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt15.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_camera: [在线客服][+][拍照]进入相机</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt15.1')" >
+        pass</a>
+
+    <div id='div_pt15.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt15.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt15.1: 2017-11-06 23:10:30,236-INFO-退出driver.
+2017-11-06 23:10:36,262-INFO-开始初始化 appium driver.
+2017-11-06 23:10:36,262-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 23:10:59,782-INFO-appium driver 初始化完毕.
+2017-11-06 23:10:59,783-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 23:11:02,879-INFO-进入引导页
+2017-11-06 23:11:02,950-INFO-上滑屏幕
+2017-11-06 23:11:05,578-INFO-进入到首页
+2017-11-06 23:11:05,578-INFO-点击"商户中心"
+2017-11-06 23:11:05,952-INFO-点击"立即登录"
+2017-11-06 23:11:07,815-INFO-用户名输入框输入xxxxxx
+2017-11-06 23:11:08,387-INFO-密码输入框输入xxxxxx
+2017-11-06 23:11:09,740-INFO-点击"立即登录"
+2017-11-06 23:11:12,320-INFO-进入到首页
+2017-11-06 23:11:12,320-INFO-点击"商户中心"
+2017-11-06 23:11:13,731-INFO-在线客服
+2017-11-06 23:11:14,796-INFO-START TEST:TestOnlineCustomerService.test_coming_camera
+2017-11-06 23:11:14,796-INFO-点击+按钮
+2017-11-06 23:11:16,668-INFO-点击拍照
+2017-11-06 23:11:31,771-INFO-按返回键.
+2017-11-06 23:11:33,606-INFO-END TEST:TestOnlineCustomerService.test_coming_camera
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt15.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_file: [在线客服][+][文件]进入选择文件页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt15.2')" >
+        pass</a>
+
+    <div id='div_pt15.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt15.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt15.2: 2017-11-06 23:11:36,854-INFO-进入到首页
+2017-11-06 23:11:36,854-INFO-点击"商户中心"
+2017-11-06 23:11:38,597-INFO-在线客服
+2017-11-06 23:11:39,892-INFO-START TEST:TestOnlineCustomerService.test_coming_file
+2017-11-06 23:11:39,892-INFO-点击+按钮
+2017-11-06 23:11:40,776-INFO-点击文件
+2017-11-06 23:11:42,503-INFO-END TEST:TestOnlineCustomerService.test_coming_file
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt15.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_picture: [在线客服][+][图片]进入选择图片页</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt15.3')" >
+        pass</a>
+
+    <div id='div_pt15.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt15.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt15.3: 2017-11-06 23:11:45,462-INFO-进入到首页
+2017-11-06 23:11:45,462-INFO-点击"商户中心"
+2017-11-06 23:11:46,888-INFO-在线客服
+2017-11-06 23:11:48,194-INFO-START TEST:TestOnlineCustomerService.test_coming_picture
+2017-11-06 23:11:48,194-INFO-点击+按钮
+2017-11-06 23:11:49,063-INFO-点击图片
+2017-11-06 23:11:53,613-INFO-按返回键.
+2017-11-06 23:11:54,231-INFO-END TEST:TestOnlineCustomerService.test_coming_picture
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt15.4' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_video: [在线客服][+][视频][拍摄录像]进入拍摄录像页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt15.4')" >
+        pass</a>
+
+    <div id='div_pt15.4' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt15.4').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt15.4: 2017-11-06 23:11:57,203-INFO-进入到首页
+2017-11-06 23:11:57,203-INFO-点击"商户中心"
+2017-11-06 23:11:58,651-INFO-在线客服
+2017-11-06 23:11:59,972-INFO-START TEST:TestOnlineCustomerService.test_coming_video
+2017-11-06 23:11:59,972-INFO-点击+按钮
+2017-11-06 23:12:00,843-INFO-点击视频
+2017-11-06 23:12:02,014-INFO-点击拍摄录像按钮
+2017-11-06 23:12:06,255-INFO-按返回键.
+2017-11-06 23:12:07,950-INFO-END TEST:TestOnlineCustomerService.test_coming_video
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='ft15.5' class='text text-success'>
+    <td class='text text-success'><div class='testcase'>test_del_chat_content: [在线客服][清空聊天记录][确定]清空聊天记录</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_ft15.5')" >
+        retry</a>
+
+    <div id='div_ft15.5' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_ft15.5').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+ft15.5: 2017-11-06 23:12:10,932-INFO-进入到首页
+2017-11-06 23:12:10,932-INFO-点击"商户中心"
+2017-11-06 23:12:12,324-INFO-在线客服
+2017-11-06 23:12:13,618-INFO-START TEST:TestOnlineCustomerService.test_del_chat_content
+2017-11-06 23:12:13,618-INFO-聊天信息输入框输入"你好"
+2017-11-06 23:12:14,186-INFO-按确认键
+2017-11-06 23:12:15,688-INFO-点击清空聊天记录按钮
+2017-11-06 23:12:16,696-INFO-点击"确定"
+imagehttp://192.168.88.79:8081/huipeitong/image/17-11-06_23_12_24.png
+2017-11-06 23:12:27,101-INFO-END TEST:TestOnlineCustomerService.test_del_chat_content
+Traceback (most recent call last):
+  File "E:\huipeitong\base\api.py", line 164, in wrapper
+    result = func(*args, **kwargs)
+  File "E:\huipeitong\testcase\test_online_customer_service.py", line 28, in test_del_chat_content
+    '聊天内容未清空'
+AssertionError: False is not true : 聊天内容未清空
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="http://192.168.88.79:8081/huipeitong/image/17-11-06_23_12_24.png" title="http://192.168.88.79:8081/huipeitong/image/17-11-06_23_12_24.png ">pic</a>
+    </td>
+</tr>
+
+<tr id='ft15.6' class='text text-success'>
+    <td class='text text-danger'><div class='testcase'>test_del_chat_content: [在线客服][清空聊天记录][确定]清空聊天记录</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_ft15.6')" >
+        fail</a>
+
+    <div id='div_ft15.6' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_ft15.6').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+ft15.6: 2017-11-06 23:12:30,179-INFO-进入到首页
+2017-11-06 23:12:30,180-INFO-点击"商户中心"
+2017-11-06 23:12:31,604-INFO-在线客服
+2017-11-06 23:12:32,873-INFO-START TEST:TestOnlineCustomerService.test_del_chat_content
+2017-11-06 23:12:32,873-INFO-聊天信息输入框输入"你好"
+2017-11-06 23:12:33,442-INFO-按确认键
+2017-11-06 23:12:34,977-INFO-点击清空聊天记录按钮
+2017-11-06 23:12:35,966-INFO-点击"确定"
+imagehttp://192.168.88.79:8081/huipeitong/image/17-11-06_23_12_43.png
+2017-11-06 23:12:46,228-INFO-END TEST:TestOnlineCustomerService.test_del_chat_content
+Traceback (most recent call last):
+  File "E:\huipeitong\base\api.py", line 164, in wrapper
+    result = func(*args, **kwargs)
+  File "E:\huipeitong\testcase\test_online_customer_service.py", line 28, in test_del_chat_content
+    '聊天内容未清空'
+AssertionError: False is not true : 聊天内容未清空
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="http://192.168.88.79:8081/huipeitong/image/17-11-06_23_12_43.png" title="http://192.168.88.79:8081/huipeitong/image/17-11-06_23_12_43.png ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt15.7' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_del_chat_content_cancel: [在线客服][清空聊天记录][取消]取消清空聊天记录</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt15.7')" >
+        pass</a>
+
+    <div id='div_pt15.7' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt15.7').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt15.7: 2017-11-06 23:12:49,397-INFO-进入到首页
+2017-11-06 23:12:49,398-INFO-点击"商户中心"
+2017-11-06 23:12:51,049-INFO-在线客服
+2017-11-06 23:12:52,325-INFO-START TEST:TestOnlineCustomerService.test_del_chat_content_cancel
+2017-11-06 23:12:52,325-INFO-聊天信息输入框输入"你好"
+2017-11-06 23:12:52,899-INFO-按确认键
+2017-11-06 23:12:55,003-INFO-点击清空聊天记录按钮
+2017-11-06 23:12:56,031-INFO-点击"取消"
+2017-11-06 23:12:56,640-INFO-END TEST:TestOnlineCustomerService.test_del_chat_content_cancel
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt15.8' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_send_face: [在线客服]发送表情消息</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt15.8')" >
+        pass</a>
+
+    <div id='div_pt15.8' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt15.8').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt15.8: 2017-11-06 23:12:59,846-INFO-进入到首页
+2017-11-06 23:12:59,846-INFO-点击"商户中心"
+2017-11-06 23:13:01,392-INFO-在线客服
+2017-11-06 23:13:02,777-INFO-START TEST:TestOnlineCustomerService.test_send_face
+2017-11-06 23:13:02,777-INFO-点击表情按钮
+2017-11-06 23:13:02,839-INFO-点击笑脸
+2017-11-06 23:13:03,733-INFO-点击发送
+2017-11-06 23:13:04,312-INFO-END TEST:TestOnlineCustomerService.test_send_face
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt15.9' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_send_text: [在线客服]发送文本消息</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt15.9')" >
+        pass</a>
+
+    <div id='div_pt15.9' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt15.9').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt15.9: 2017-11-06 23:13:07,283-INFO-进入到首页
+2017-11-06 23:13:07,283-INFO-点击"商户中心"
+2017-11-06 23:13:08,733-INFO-在线客服
+2017-11-06 23:13:10,024-INFO-START TEST:TestOnlineCustomerService.test_send_text
+2017-11-06 23:13:10,024-INFO-聊天信息输入框输入"你好"
+2017-11-06 23:13:10,594-INFO-按确认键
+2017-11-06 23:13:12,236-INFO-END TEST:TestOnlineCustomerService.test_send_text
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt15.10' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_voice: [在线客服][语音]查看按住录音按钮显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt15.10')" >
+        pass</a>
+
+    <div id='div_pt15.10' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt15.10').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt15.10: 2017-11-06 23:13:15,303-INFO-进入到首页
+2017-11-06 23:13:15,303-INFO-点击"商户中心"
+2017-11-06 23:13:16,983-INFO-在线客服
+2017-11-06 23:13:18,280-INFO-START TEST:TestOnlineCustomerService.test_voice
+2017-11-06 23:13:18,280-INFO-点击语音按钮
+2017-11-06 23:13:19,007-INFO-END TEST:TestOnlineCustomerService.test_voice
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-danger'>
+    <td>test_packagePrefecture.TestPackagePrefecture: 首页---套餐专区</td>
+    <td>8</td>
+    <td>7</td>
+    <td>1</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c16',8)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='ft16.1' class='text text-success'>
+    <td class='text text-success'><div class='testcase'>test_buy_now: [首页][套餐专区][立即购买][确定][购物车]检查购物车页面是否加入对应的商品</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_ft16.1')" >
+        retry</a>
+
+    <div id='div_ft16.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_ft16.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+ft16.1: 2017-11-06 23:13:21,396-INFO-退出driver.
+2017-11-06 23:13:27,472-INFO-开始初始化 appium driver.
+2017-11-06 23:13:27,472-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 23:13:51,297-INFO-appium driver 初始化完毕.
+2017-11-06 23:13:51,297-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 23:13:54,388-INFO-进入引导页
+2017-11-06 23:13:54,432-INFO-上滑屏幕
+2017-11-06 23:13:56,826-INFO-进入到首页
+2017-11-06 23:13:56,826-INFO-点击"商户中心"
+2017-11-06 23:13:57,159-INFO-点击"立即登录"
+2017-11-06 23:13:59,122-INFO-用户名输入框输入xxxxxx
+2017-11-06 23:13:59,696-INFO-密码输入框输入xxxxxx
+2017-11-06 23:14:00,973-INFO-点击"立即登录"
+2017-11-06 23:14:04,099-INFO-进入到首页
+2017-11-06 23:14:04,099-INFO-START TEST:TestPackagePrefecture.test_buy_now
+2017-11-06 23:14:04,099-INFO-点击"购物车"
+2017-11-06 23:14:09,329-INFO-点击"首页"
+2017-11-06 23:14:10,139-INFO-点击套餐专区标签
+2017-11-06 23:14:11,830-INFO-获取套餐名称
+2017-11-06 23:14:13,122-INFO-点击"确定"
+2017-11-06 23:14:16,294-INFO-找到toast"//*[contains(@text, "商品库存不足")]"
+2017-11-06 23:14:16,294-INFO-选择的套餐库存不足
+2017-11-06 23:14:16,295-INFO-选择下一个套餐
+2017-11-06 23:14:16,485-INFO-获取套餐名称
+2017-11-06 23:14:17,750-INFO-点击"确定"
+2017-11-06 23:14:18,158-INFO-找到toast"//*[contains(@text, "商品库存不足")]"
+2017-11-06 23:14:20,222-INFO-上滑屏幕
+2017-11-06 23:14:22,613-INFO-选择的套餐库存不足
+2017-11-06 23:14:22,613-INFO-选择下一个套餐
+2017-11-06 23:14:22,888-INFO-获取套餐名称
+2017-11-06 23:14:24,170-INFO-点击"确定"
+2017-11-06 23:14:29,450-INFO-未找到toast"//*[contains(@text, "商品库存不足")]"
+2017-11-06 23:14:29,450-INFO-点击右侧"购物车"
+2017-11-06 23:14:34,014-INFO-获取商品名称
+imagehttp://192.168.88.79:8081/huipeitong/image/17-11-06_23_14_34.png
+2017-11-06 23:14:37,419-INFO-END TEST:TestPackagePrefecture.test_buy_now
+Traceback (most recent call last):
+  File "E:\huipeitong\base\api.py", line 164, in wrapper
+    result = func(*args, **kwargs)
+  File "E:\huipeitong\testcase\test_packagePrefecture.py", line 114, in test_buy_now
+    self.assertEqual(text1, text2, '加入购物车失败')
+AssertionError: '【惊爆】购46°牛栏山二锅头+青岛经典啤酒立省10元' != '购七度特薄卫生巾送甜睡裤3包立省24.6元'
+- 【惊爆】购46°牛栏山二锅头+青岛经典啤酒立省10元
++ 购七度特薄卫生巾送甜睡裤3包立省24.6元
+ : 加入购物车失败
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="http://192.168.88.79:8081/huipeitong/image/17-11-06_23_14_34.png" title="http://192.168.88.79:8081/huipeitong/image/17-11-06_23_14_34.png ">pic</a>
+    </td>
+</tr>
+
+<tr id='ft16.2' class='text text-success'>
+    <td class='text text-danger'><div class='testcase'>test_buy_now: [首页][套餐专区][立即购买][确定][购物车]检查购物车页面是否加入对应的商品</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_ft16.2')" >
+        fail</a>
+
+    <div id='div_ft16.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_ft16.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+ft16.2: 2017-11-06 23:14:40,809-INFO-进入到首页
+2017-11-06 23:14:40,810-INFO-START TEST:TestPackagePrefecture.test_buy_now
+2017-11-06 23:14:40,810-INFO-点击"购物车"
+2017-11-06 23:14:43,984-INFO-点击"删除商品"
+2017-11-06 23:14:44,834-INFO-得到购物车标签分类数量
+2017-11-06 23:14:44,999-INFO-点击"清空购物车"
+2017-11-06 23:14:46,388-INFO-点击"确定"
+2017-11-06 23:15:43,516-INFO-点击"首页"
+2017-11-06 23:15:44,532-INFO-点击套餐专区标签
+2017-11-06 23:15:46,093-INFO-获取套餐名称
+2017-11-06 23:15:47,387-INFO-点击"确定"
+2017-11-06 23:15:50,790-INFO-找到toast"//*[contains(@text, "商品库存不足")]"
+2017-11-06 23:15:50,790-INFO-选择的套餐库存不足
+2017-11-06 23:15:50,791-INFO-选择下一个套餐
+2017-11-06 23:15:50,865-INFO-获取套餐名称
+2017-11-06 23:15:52,148-INFO-点击"确定"
+2017-11-06 23:15:52,580-INFO-找到toast"//*[contains(@text, "商品库存不足")]"
+2017-11-06 23:15:54,620-INFO-上滑屏幕
+2017-11-06 23:15:57,013-INFO-选择的套餐库存不足
+2017-11-06 23:15:57,013-INFO-选择下一个套餐
+2017-11-06 23:15:57,505-INFO-获取套餐名称
+2017-11-06 23:15:58,762-INFO-点击"确定"
+2017-11-06 23:16:04,106-INFO-未找到toast"//*[contains(@text, "商品库存不足")]"
+2017-11-06 23:16:04,106-INFO-点击右侧"购物车"
+2017-11-06 23:16:08,622-INFO-获取商品名称
+imagehttp://192.168.88.79:8081/huipeitong/image/17-11-06_23_16_08.png
+2017-11-06 23:16:11,928-INFO-END TEST:TestPackagePrefecture.test_buy_now
+Traceback (most recent call last):
+  File "E:\huipeitong\base\api.py", line 164, in wrapper
+    result = func(*args, **kwargs)
+  File "E:\huipeitong\testcase\test_packagePrefecture.py", line 114, in test_buy_now
+    self.assertEqual(text1, text2, '加入购物车失败')
+AssertionError: '【惊爆】购46°牛栏山二锅头+青岛经典啤酒立省10元' != '购七度特薄卫生巾送甜睡裤3包立省24.6元'
+- 【惊爆】购46°牛栏山二锅头+青岛经典啤酒立省10元
++ 购七度特薄卫生巾送甜睡裤3包立省24.6元
+ : 加入购物车失败
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="http://192.168.88.79:8081/huipeitong/image/17-11-06_23_16_08.png" title="http://192.168.88.79:8081/huipeitong/image/17-11-06_23_16_08.png ">pic</a>
+    </td>
+</tr>
+
+<tr id='ft16.3' class='text text-success'>
+    <td class='text text-success'><div class='testcase'>test_buy_now_limit_num: [首页][套餐专区][立即购买]输入超过库存的数量,检查toast提示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_ft16.3')" >
+        retry</a>
+
+    <div id='div_ft16.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_ft16.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+ft16.3: 2017-11-06 23:16:15,216-INFO-进入到首页
+2017-11-06 23:16:15,216-INFO-START TEST:TestPackagePrefecture.test_buy_now_limit_num
+2017-11-06 23:16:15,273-INFO-点击套餐专区标签
+2017-11-06 23:16:18,097-INFO-获取每单限购数
+2017-11-06 23:16:18,147-INFO-获取到每单限购数为1
+2017-11-06 23:16:18,147-INFO-清空购买输入框
+2017-11-06 23:16:19,108-INFO-输入购买数量1
+2017-11-06 23:16:19,941-INFO-点击"+"
+2017-11-06 23:16:25,647-INFO-未找到toast"//*[contains(@text, "该商品最大限购")]"
+imagehttp://192.168.88.79:8081/huipeitong/image/17-11-06_23_16_25.png
+2017-11-06 23:16:28,666-INFO-END TEST:TestPackagePrefecture.test_buy_now_limit_num
+Traceback (most recent call last):
+  File "E:\huipeitong\base\api.py", line 164, in wrapper
+    result = func(*args, **kwargs)
+  File "E:\huipeitong\testcase\test_packagePrefecture.py", line 155, in test_buy_now_limit_num
+    'toast提示未找到'
+AssertionError: False is not true : toast提示未找到
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="http://192.168.88.79:8081/huipeitong/image/17-11-06_23_16_25.png" title="http://192.168.88.79:8081/huipeitong/image/17-11-06_23_16_25.png ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt16.4' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_buy_now_limit_num: [首页][套餐专区][立即购买]输入超过库存的数量,检查toast提示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt16.4')" >
+        pass</a>
+
+    <div id='div_pt16.4' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt16.4').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt16.4: 2017-11-06 23:16:31,728-INFO-进入到首页
+2017-11-06 23:16:31,728-INFO-START TEST:TestPackagePrefecture.test_buy_now_limit_num
+2017-11-06 23:16:31,808-INFO-点击套餐专区标签
+2017-11-06 23:16:34,619-INFO-获取每单限购数
+2017-11-06 23:16:34,662-INFO-获取到每单限购数为1
+2017-11-06 23:16:34,662-INFO-清空购买输入框
+2017-11-06 23:16:35,756-INFO-输入购买数量1
+2017-11-06 23:16:36,600-INFO-点击"+"
+2017-11-06 23:16:37,721-INFO-找到toast"//*[contains(@text, "该商品最大限购")]"
+2017-11-06 23:16:37,722-INFO-点击"关闭"
+2017-11-06 23:16:37,770-INFO-END TEST:TestPackagePrefecture.test_buy_now_limit_num
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt16.5' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_package_details: [首页]点击首页套餐专区3个套餐商品的一个，检查套餐详情页显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt16.5')" >
+        pass</a>
+
+    <div id='div_pt16.5' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt16.5').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt16.5: 2017-11-06 23:16:40,800-INFO-进入到首页
+2017-11-06 23:16:40,800-INFO-START TEST:TestPackagePrefecture.test_coming_package_details
+2017-11-06 23:16:40,800-INFO-点击套餐专区商品图片
+2017-11-06 23:16:42,430-INFO-上滑屏幕
+2017-11-06 23:16:43,533-INFO-END TEST:TestPackagePrefecture.test_coming_package_details
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt16.6' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_package_list: [首页][套餐专区]检查套餐角标、立即购买按钮显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt16.6')" >
+        pass</a>
+
+    <div id='div_pt16.6' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt16.6').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt16.6: 2017-11-06 23:16:46,467-INFO-进入到首页
+2017-11-06 23:16:46,467-INFO-START TEST:TestPackagePrefecture.test_coming_package_list
+2017-11-06 23:16:46,572-INFO-点击套餐专区标签
+2017-11-06 23:16:48,491-INFO-END TEST:TestPackagePrefecture.test_coming_package_list
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt16.7' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_package_details_add_shopCar: [首页][套餐专区][套餐详情页][加入购物车][购物车]检查购物车页面是否加入对应的套餐</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt16.7')" >
+        pass</a>
+
+    <div id='div_pt16.7' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt16.7').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt16.7: 2017-11-06 23:16:51,553-INFO-进入到首页
+2017-11-06 23:16:51,554-INFO-START TEST:TestPackagePrefecture.test_package_details_add_shopCar
+2017-11-06 23:16:51,554-INFO-点击"购物车"
+2017-11-06 23:16:55,468-INFO-点击"删除商品"
+2017-11-06 23:16:56,271-INFO-得到购物车标签分类数量
+2017-11-06 23:16:56,446-INFO-点击"清空购物车"
+2017-11-06 23:16:57,472-INFO-点击"确定"
+2017-11-06 23:17:55,737-INFO-点击"首页"
+2017-11-06 23:17:56,644-INFO-点击套餐专区标签
+2017-11-06 23:18:02,843-INFO-获取套餐名称
+2017-11-06 23:18:02,907-INFO-点击"加入购物车"
+2017-11-06 23:18:04,240-INFO-点击"确定"
+2017-11-06 23:18:07,536-INFO-找到toast"//*[contains(@text, "商品库存不足")]"
+2017-11-06 23:18:07,536-INFO-选择的套餐库存不足
+2017-11-06 23:18:07,536-INFO-选择下一个套餐
+2017-11-06 23:18:07,536-INFO-点击"返回"
+2017-11-06 23:18:19,911-INFO-从套餐详情页返回至套餐列表页
+2017-11-06 23:18:21,075-INFO-获取套餐名称
+2017-11-06 23:18:21,126-INFO-点击"加入购物车"
+2017-11-06 23:18:22,410-INFO-点击"确定"
+2017-11-06 23:18:27,764-INFO-未找到toast"//*[contains(@text, "商品库存不足")]"
+2017-11-06 23:18:27,764-INFO-点击左侧"购物车"按钮
+2017-11-06 23:18:32,260-INFO-获取商品名称
+2017-11-06 23:18:32,328-INFO-点击"删除商品"
+2017-11-06 23:18:33,052-INFO-得到购物车标签分类数量
+2017-11-06 23:18:33,297-INFO-点击"清空购物车"
+2017-11-06 23:18:34,289-INFO-点击"确定"
+2017-11-06 23:19:30,306-INFO-END TEST:TestPackagePrefecture.test_package_details_add_shopCar
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt16.8' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_package_details_coming_check_more: [首页][套餐专区][套餐详情页][查看更多]检查套餐详情页商品名称显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt16.8')" >
+        pass</a>
+
+    <div id='div_pt16.8' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt16.8').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt16.8: 2017-11-06 23:19:33,191-INFO-进入到首页
+2017-11-06 23:19:33,192-INFO-START TEST:TestPackagePrefecture.test_package_details_coming_check_more
+2017-11-06 23:19:33,287-INFO-点击套餐专区标签
+2017-11-06 23:19:35,136-INFO-获取套餐名称
+2017-11-06 23:19:35,185-INFO-点击套餐名称
+2017-11-06 23:19:36,384-INFO-获取套餐名称
+2017-11-06 23:19:36,476-INFO-上滑屏幕
+2017-11-06 23:19:36,852-INFO-获取套餐单品名称
+2017-11-06 23:19:37,511-INFO-点击"查看更多"
+2017-11-06 23:19:42,201-INFO-获取商品名称
+2017-11-06 23:19:42,262-INFO-END TEST:TestPackagePrefecture.test_package_details_coming_check_more
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt16.9' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_package_details_coming_shopCar: [首页][套餐专区][套餐详情页][购物车]检查购物车标题显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt16.9')" >
+        pass</a>
+
+    <div id='div_pt16.9' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt16.9').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt16.9: 2017-11-06 23:19:45,860-INFO-进入到首页
+2017-11-06 23:19:45,860-INFO-START TEST:TestPackagePrefecture.test_package_details_coming_shopCar
+2017-11-06 23:19:45,915-INFO-点击套餐专区标签
+2017-11-06 23:19:48,463-INFO-点击左侧"购物车"按钮
+2017-11-06 23:19:50,944-INFO-END TEST:TestPackagePrefecture.test_package_details_coming_shopCar
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt16.10' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_package_details_limit_num: [首页][套餐专区][套餐详情页]加入超过库存数量的套餐,检查toast提示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt16.10')" >
+        pass</a>
+
+    <div id='div_pt16.10' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt16.10').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt16.10: 2017-11-06 23:19:53,861-INFO-进入到首页
+2017-11-06 23:19:53,862-INFO-START TEST:TestPackagePrefecture.test_package_details_limit_num
+2017-11-06 23:19:53,919-INFO-点击套餐专区标签
+2017-11-06 23:19:56,707-INFO-获取每单限购数
+2017-11-06 23:19:56,755-INFO-获取到每单限购数为1
+2017-11-06 23:19:56,755-INFO-点击"关闭"
+2017-11-06 23:19:58,505-INFO-点击"加入购物车"
+2017-11-06 23:19:59,816-INFO-清空购买输入框
+2017-11-06 23:20:00,825-INFO-输入购买数量1
+2017-11-06 23:20:01,845-INFO-点击"+"
+2017-11-06 23:20:02,533-INFO-找到toast"//*[contains(@text, "该商品最大限购")]"
+2017-11-06 23:20:02,534-INFO-点击"关闭"
+2017-11-06 23:20:02,972-INFO-END TEST:TestPackagePrefecture.test_package_details_limit_num
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_search.TestSearch: 首页---搜索</td>
+    <td>11</td>
+    <td>11</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c17',11)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt17.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_clear_history_search: [首页][搜索]清空历史搜索记录</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt17.1')" >
+        pass</a>
+
+    <div id='div_pt17.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt17.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt17.1: 2017-11-06 23:20:05,123-INFO-退出driver.
+2017-11-06 23:20:11,318-INFO-开始初始化 appium driver.
+2017-11-06 23:20:11,318-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 23:20:34,882-INFO-appium driver 初始化完毕.
+2017-11-06 23:20:34,883-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 23:20:37,971-INFO-进入引导页
+2017-11-06 23:20:38,035-INFO-上滑屏幕
+2017-11-06 23:20:40,433-INFO-进入到首页
+2017-11-06 23:20:40,433-INFO-点击"商户中心"
+2017-11-06 23:20:40,748-INFO-点击"立即登录"
+2017-11-06 23:20:42,704-INFO-用户名输入框输入xxxxxx
+2017-11-06 23:20:43,279-INFO-密码输入框输入xxxxxx
+2017-11-06 23:20:44,623-INFO-点击"立即登录"
+2017-11-06 23:20:47,263-INFO-进入到首页
+2017-11-06 23:20:47,263-INFO-START TEST:TestSearch.test_clear_history_search
+2017-11-06 23:20:47,263-INFO-点击"搜索"输入框
+2017-11-06 23:20:48,522-INFO-搜素输入框输入"张君雅"
+2017-11-06 23:20:49,111-INFO-点击"搜索"
+2017-11-06 23:20:50,315-INFO-获取商品名称
+2017-11-06 23:20:53,675-INFO-点击清空搜索输入按钮
+2017-11-06 23:20:53,815-INFO-点击"清空历史搜索"
+2017-11-06 23:20:55,875-INFO-点击"确定"
+2017-11-06 23:20:56,579-INFO-END TEST:TestSearch.test_clear_history_search
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt17.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_clear_search_input: [首页][搜索]清空搜索输入框内容</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt17.2')" >
+        pass</a>
+
+    <div id='div_pt17.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt17.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt17.2: 2017-11-06 23:20:59,666-INFO-进入到首页
+2017-11-06 23:20:59,667-INFO-START TEST:TestSearch.test_clear_search_input
+2017-11-06 23:20:59,667-INFO-点击"搜索"输入框
+2017-11-06 23:21:00,896-INFO-搜素输入框输入"可乐"
+2017-11-06 23:21:01,492-INFO-点击清空搜索输入按钮
+2017-11-06 23:21:02,821-INFO-END TEST:TestSearch.test_clear_search_input
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt17.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_search_page: [首页][搜索]检查历史搜索标签显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt17.3')" >
+        pass</a>
+
+    <div id='div_pt17.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt17.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt17.3: 2017-11-06 23:21:05,853-INFO-进入到首页
+2017-11-06 23:21:05,854-INFO-START TEST:TestSearch.test_coming_search_page
+2017-11-06 23:21:05,854-INFO-点击"搜索"输入框
+2017-11-06 23:21:07,191-INFO-点击"返回"
+2017-11-06 23:21:20,516-INFO-END TEST:TestSearch.test_coming_search_page
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt17.4' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_history_search: [首页][搜索]通过历史搜索成功搜索内容</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt17.4')" >
+        pass</a>
+
+    <div id='div_pt17.4' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt17.4').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt17.4: 2017-11-06 23:21:23,524-INFO-进入到首页
+2017-11-06 23:21:23,525-INFO-START TEST:TestSearch.test_history_search
+2017-11-06 23:21:23,525-INFO-点击"搜索"输入框
+2017-11-06 23:21:24,917-INFO-搜素输入框输入"张君雅"
+2017-11-06 23:21:25,519-INFO-点击"搜索"
+2017-11-06 23:21:26,729-INFO-获取商品名称
+2017-11-06 23:21:28,277-INFO-点击清空搜索输入按钮
+2017-11-06 23:21:41,598-INFO-获取商品名称
+2017-11-06 23:21:41,671-INFO-END TEST:TestSearch.test_history_search
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt17.5' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_history_search_no_goods: [首页][搜索]通过历史搜索搜索不存在的商品</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt17.5')" >
+        pass</a>
+
+    <div id='div_pt17.5' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt17.5').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt17.5: 2017-11-06 23:21:44,687-INFO-进入到首页
+2017-11-06 23:21:44,687-INFO-START TEST:TestSearch.test_history_search_no_goods
+2017-11-06 23:21:44,687-INFO-点击"搜索"输入框
+2017-11-06 23:21:45,923-INFO-搜素输入框输入"@"
+2017-11-06 23:21:46,521-INFO-点击"搜索"
+2017-11-06 23:21:48,219-INFO-找到toast"//*[contains(@text, "没有可查询的数据")]"
+2017-11-06 23:21:48,220-INFO-点击清空搜索输入按钮
+2017-11-06 23:21:49,026-INFO-找到toast"//*[contains(@text, "没有可查询的数据")]"
+2017-11-06 23:21:49,026-INFO-END TEST:TestSearch.test_history_search_no_goods
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt17.6' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_hot_recommend: [首页][搜索]检查热门推荐中康师傅、农夫山泉标签显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt17.6')" >
+        pass</a>
+
+    <div id='div_pt17.6' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt17.6').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt17.6: 2017-11-06 23:21:52,146-INFO-进入到首页
+2017-11-06 23:21:52,146-INFO-START TEST:TestSearch.test_hot_recommend
+2017-11-06 23:21:52,147-INFO-点击"搜索"输入框
+2017-11-06 23:21:53,517-INFO-END TEST:TestSearch.test_hot_recommend
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt17.7' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_hot_recommend_search: [首页][搜索]点击热门推荐里的品牌，例如‘康师傅’</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt17.7')" >
+        pass</a>
+
+    <div id='div_pt17.7' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt17.7').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt17.7: 2017-11-06 23:21:56,572-INFO-进入到首页
+2017-11-06 23:21:56,573-INFO-START TEST:TestSearch.test_hot_recommend_search
+2017-11-06 23:21:56,573-INFO-点击"搜索"输入框
+2017-11-06 23:21:57,868-INFO-点击"康师傅"标签
+2017-11-06 23:21:57,968-INFO-获取商品名称
+2017-11-06 23:22:00,905-INFO-点击"返回"
+2017-11-06 23:22:13,602-INFO-END TEST:TestSearch.test_hot_recommend_search
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt17.8' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_no_goods_search: [首页][搜索]输入系统未存在的商品名称，搜索</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt17.8')" >
+        pass</a>
+
+    <div id='div_pt17.8' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt17.8').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt17.8: 2017-11-06 23:22:16,484-INFO-进入到首页
+2017-11-06 23:22:16,484-INFO-START TEST:TestSearch.test_no_goods_search
+2017-11-06 23:22:16,484-INFO-点击"搜索"输入框
+2017-11-06 23:22:17,738-INFO-搜素输入框输入"@"
+2017-11-06 23:22:18,335-INFO-点击"搜索"
+2017-11-06 23:22:20,049-INFO-找到toast"//*[contains(@text, "没有可查询的数据")]"
+2017-11-06 23:22:20,050-INFO-END TEST:TestSearch.test_no_goods_search
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt17.9' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_no_input_search: [首页][搜索]搜索框未输入内容，点击搜索</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt17.9')" >
+        pass</a>
+
+    <div id='div_pt17.9' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt17.9').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt17.9: 2017-11-06 23:22:23,045-INFO-进入到首页
+2017-11-06 23:22:23,046-INFO-START TEST:TestSearch.test_no_input_search
+2017-11-06 23:22:23,046-INFO-点击"搜索"输入框
+2017-11-06 23:22:24,385-INFO-点击"搜索"
+2017-11-06 23:22:25,082-INFO-点击"返回"
+2017-11-06 23:22:37,930-INFO-END TEST:TestSearch.test_no_input_search
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt17.10' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_record_history_search: [首页][搜索]历史搜索保存搜索记录验证</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt17.10')" >
+        pass</a>
+
+    <div id='div_pt17.10' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt17.10').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt17.10: 2017-11-06 23:22:41,025-INFO-进入到首页
+2017-11-06 23:22:41,025-INFO-START TEST:TestSearch.test_record_history_search
+2017-11-06 23:22:41,025-INFO-点击"搜索"输入框
+2017-11-06 23:22:42,365-INFO-搜素输入框输入"张君雅"
+2017-11-06 23:22:42,949-INFO-点击"搜索"
+2017-11-06 23:22:44,149-INFO-获取商品名称
+2017-11-06 23:22:47,129-INFO-点击清空搜索输入按钮
+2017-11-06 23:22:47,859-INFO-END TEST:TestSearch.test_record_history_search
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt17.11' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_search_goods: [首页][搜索]搜索商品'康师傅'</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt17.11')" >
+        pass</a>
+
+    <div id='div_pt17.11' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt17.11').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt17.11: 2017-11-06 23:22:50,887-INFO-进入到首页
+2017-11-06 23:22:50,887-INFO-START TEST:TestSearch.test_search_goods
+2017-11-06 23:22:50,887-INFO-点击"搜索"输入框
+2017-11-06 23:22:52,259-INFO-搜素输入框输入"康师傅"
+2017-11-06 23:22:52,869-INFO-点击"搜索"
+2017-11-06 23:22:54,109-INFO-获取商品名称
+2017-11-06 23:22:55,620-INFO-点击"返回"
+2017-11-06 23:23:09,120-INFO-END TEST:TestSearch.test_search_goods
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_service_feedback.TestServiceFeedback: 商户中心---服务与反馈</td>
+    <td>3</td>
+    <td>3</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c18',3)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt18.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_call_customer_service_cancel: [服务与反馈][客服电话][取消]呼叫弹框消失</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt18.1')" >
+        pass</a>
+
+    <div id='div_pt18.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt18.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt18.1: 2017-11-06 23:23:11,446-INFO-退出driver.
+2017-11-06 23:23:17,580-INFO-开始初始化 appium driver.
+2017-11-06 23:23:17,580-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 23:23:41,890-INFO-appium driver 初始化完毕.
+2017-11-06 23:23:41,890-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 23:23:44,981-INFO-进入引导页
+2017-11-06 23:23:45,025-INFO-上滑屏幕
+2017-11-06 23:23:47,460-INFO-进入到首页
+2017-11-06 23:23:47,461-INFO-点击"商户中心"
+2017-11-06 23:23:47,868-INFO-点击"立即登录"
+2017-11-06 23:23:49,661-INFO-用户名输入框输入xxxxxx
+2017-11-06 23:23:50,226-INFO-密码输入框输入xxxxxx
+2017-11-06 23:23:51,595-INFO-点击"立即登录"
+2017-11-06 23:23:54,264-INFO-进入到首页
+2017-11-06 23:23:54,264-INFO-点击"商户中心"
+2017-11-06 23:23:55,698-INFO-点击服务与反馈
+2017-11-06 23:23:56,867-INFO-START TEST:TestServiceFeedback.test_call_customer_service_cancel
+2017-11-06 23:23:56,868-INFO-点击客服电话
+2017-11-06 23:23:58,070-INFO-点击"取消"
+2017-11-06 23:24:00,276-INFO-END TEST:TestServiceFeedback.test_call_customer_service_cancel
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt18.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_feedback: [服务与反馈][意见反馈]进入意见反馈页面</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt18.2')" >
+        pass</a>
+
+    <div id='div_pt18.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt18.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt18.2: 2017-11-06 23:24:45,183-INFO-进入到首页
+2017-11-06 23:24:45,183-INFO-点击"商户中心"
+2017-11-06 23:24:46,585-INFO-点击服务与反馈
+2017-11-06 23:24:47,766-INFO-START TEST:TestServiceFeedback.test_coming_feedback
+2017-11-06 23:24:47,767-INFO-点击意见反馈
+2017-11-06 23:24:49,105-INFO-END TEST:TestServiceFeedback.test_coming_feedback
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt18.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_commit_suggest: [服务与反馈][意见反馈]提交反馈信息</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt18.3')" >
+        pass</a>
+
+    <div id='div_pt18.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt18.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt18.3: 2017-11-06 23:26:01,061-INFO-进入到首页
+2017-11-06 23:26:01,061-INFO-点击"商户中心"
+2017-11-06 23:26:02,809-INFO-点击服务与反馈
+2017-11-06 23:26:03,987-INFO-START TEST:TestServiceFeedback.test_commit_suggest
+2017-11-06 23:26:03,987-INFO-点击意见反馈
+2017-11-06 23:26:05,204-INFO-点击其他
+2017-11-06 23:26:05,351-INFO-反馈输入框输入内容
+2017-11-06 23:26:06,504-INFO-上滑屏幕
+2017-11-06 23:26:06,886-INFO-点击提交按钮
+2017-11-06 23:26:08,123-INFO-找到toast"//*[contains(@text, "感谢您提交宝贵意见")]"
+2017-11-06 23:26:08,123-INFO-END TEST:TestServiceFeedback.test_commit_suggest
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_settingpage.TestSettingPage: 商户中心---设置</td>
+    <td>4</td>
+    <td>4</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c19',4)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt19.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_about_us: [商户中心][设置][关于我们]检查版本、公司名、地址显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt19.1')" >
+        pass</a>
+
+    <div id='div_pt19.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt19.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt19.1: 2017-11-06 23:26:10,375-INFO-退出driver.
+2017-11-06 23:26:16,697-INFO-开始初始化 appium driver.
+2017-11-06 23:26:16,697-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 23:26:40,294-INFO-appium driver 初始化完毕.
+2017-11-06 23:26:40,294-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 23:26:43,390-INFO-进入引导页
+2017-11-06 23:26:43,433-INFO-上滑屏幕
+2017-11-06 23:26:45,811-INFO-进入到首页
+2017-11-06 23:26:45,811-INFO-点击"商户中心"
+2017-11-06 23:26:46,223-INFO-点击"立即登录"
+2017-11-06 23:26:48,107-INFO-用户名输入框输入xxxxxx
+2017-11-06 23:26:48,680-INFO-密码输入框输入xxxxxx
+2017-11-06 23:26:50,011-INFO-点击"立即登录"
+2017-11-06 23:26:52,664-INFO-进入到首页
+2017-11-06 23:26:52,664-INFO-点击"商户中心"
+2017-11-06 23:26:54,038-INFO-点击"设置"
+2017-11-06 23:26:55,314-INFO-START TEST:TestSettingPage.test_about_us
+2017-11-06 23:26:55,314-INFO-点击关于我们
+2017-11-06 23:26:56,587-INFO-END TEST:TestSettingPage.test_about_us
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt19.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_check_update: [商户中心][设置][检测更新]检查检测中...toast显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt19.2')" >
+        pass</a>
+
+    <div id='div_pt19.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt19.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt19.2: 2017-11-06 23:26:59,409-INFO-进入到首页
+2017-11-06 23:26:59,409-INFO-点击"商户中心"
+2017-11-06 23:27:00,828-INFO-点击"设置"
+2017-11-06 23:27:02,114-INFO-START TEST:TestSettingPage.test_check_update
+2017-11-06 23:27:02,114-INFO-点击检测更新
+2017-11-06 23:27:02,283-INFO-找到toast"//*[contains(@text, "检测中")]"
+2017-11-06 23:27:02,283-INFO-END TEST:TestSettingPage.test_check_update
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt19.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_clear_cache: [商户中心][设置][清除缓存]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt19.3')" >
+        pass</a>
+
+    <div id='div_pt19.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt19.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt19.3: 2017-11-06 23:28:50,793-INFO-首页加载失败
+2017-11-06 23:28:53,127-INFO-重新打开首页
+2017-11-06 23:28:53,778-INFO-进入到首页
+2017-11-06 23:28:53,778-INFO-点击"商户中心"
+2017-11-06 23:28:55,194-INFO-点击"设置"
+2017-11-06 23:28:56,483-INFO-START TEST:TestSettingPage.test_clear_cache
+2017-11-06 23:28:56,483-INFO-点击清除缓存
+2017-11-06 23:28:57,683-INFO-点击"确定"
+2017-11-06 23:28:58,942-INFO-得到缓存0K
+2017-11-06 23:28:58,942-INFO-END TEST:TestSettingPage.test_clear_cache
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt19.4' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_logout: [商户中心][设置][退出登录]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt19.4')" >
+        pass</a>
+
+    <div id='div_pt19.4' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt19.4').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt19.4: 2017-11-06 23:29:01,965-INFO-进入到首页
+2017-11-06 23:29:01,966-INFO-点击"商户中心"
+2017-11-06 23:29:03,419-INFO-点击"设置"
+2017-11-06 23:29:04,739-INFO-START TEST:TestSettingPage.test_logout
+2017-11-06 23:29:04,739-INFO-点击"退出登录"
+2017-11-06 23:29:06,122-INFO-用户名输入框输入xxxxxx
+2017-11-06 23:29:06,681-INFO-密码输入框输入xxxxxx
+2017-11-06 23:29:08,157-INFO-点击"立即登录"
+2017-11-06 23:29:10,585-INFO-END TEST:TestSettingPage.test_logout
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr class='text text-success'>
+    <td>test_shopCar.TestShopCar: 购物车</td>
+    <td>8</td>
+    <td>8</td>
+    <td>0</td>
+    <td>0</td>
+    <td><a class="btn btn-xs btn-primary"href="javascript:showClassDetail('c20',8)">Detail</a></td>
+    <td>&nbsp;</td>
+</tr>
+
+<tr id='pt20.1' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_commitOrder: [购物车]加入500+[结算]查看提交订单页面显示</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt20.1')" >
+        pass</a>
+
+    <div id='div_pt20.1' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt20.1').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt20.1: 2017-11-06 23:29:12,970-INFO-退出driver.
+2017-11-06 23:29:18,985-INFO-开始初始化 appium driver.
+2017-11-06 23:29:18,985-INFO-http://127.0.0.1:4724/wd/hub
+2017-11-06 23:29:43,212-INFO-appium driver 初始化完毕.
+2017-11-06 23:29:43,212-INFO-开始查找获取权限的"允许"按钮
+2017-11-06 23:29:46,313-INFO-进入引导页
+2017-11-06 23:29:46,359-INFO-上滑屏幕
+2017-11-06 23:29:48,737-INFO-进入到首页
+2017-11-06 23:29:48,737-INFO-点击"商户中心"
+2017-11-06 23:29:49,136-INFO-点击"立即登录"
+2017-11-06 23:29:51,018-INFO-用户名输入框输入xxxxxx
+2017-11-06 23:29:51,102-INFO-密码输入框输入xxxxxx
+2017-11-06 23:29:52,393-INFO-点击"立即登录"
+2017-11-06 23:29:55,010-INFO-进入到首页
+2017-11-06 23:29:55,010-INFO-点击"购物车"
+2017-11-06 23:29:57,930-INFO-START TEST:TestShopCar.test_coming_commitOrder
+2017-11-06 23:30:02,506-INFO-上滑屏幕
+2017-11-06 23:30:02,905-INFO-点击加入购物车按钮
+2017-11-06 23:30:05,584-INFO-获取商品价格
+2017-11-06 23:30:05,634-INFO-获取库存数量
+2017-11-06 23:30:07,764-INFO-输入购买数量13
+2017-11-06 23:30:08,371-INFO-点击"确定"
+2017-11-06 23:31:13,206-INFO-点击去结算
+2017-11-06 23:31:16,929-INFO-END TEST:TestShopCar.test_coming_commitOrder
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt20.2' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_goods_details: [购物车]点击商品区进入商品详情</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt20.2')" >
+        pass</a>
+
+    <div id='div_pt20.2' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt20.2').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt20.2: 2017-11-06 23:31:20,348-INFO-进入到首页
+2017-11-06 23:31:20,349-INFO-点击"购物车"
+2017-11-06 23:31:23,652-INFO-START TEST:TestShopCar.test_coming_goods_details
+2017-11-06 23:31:26,048-INFO-点击"删除商品"
+2017-11-06 23:31:26,930-INFO-得到购物车标签分类数量
+2017-11-06 23:31:27,148-INFO-点击"清空购物车"
+2017-11-06 23:31:28,172-INFO-点击"确定"
+2017-11-06 23:32:26,070-INFO-上滑屏幕
+2017-11-06 23:32:26,450-INFO-点击加入购物车按钮
+2017-11-06 23:32:29,306-INFO-点击"确定"
+2017-11-06 23:32:33,476-INFO-获取商品名称
+2017-11-06 23:32:33,573-INFO-点击商品名称
+2017-11-06 23:32:37,938-INFO-获取商品名称
+2017-11-06 23:32:37,987-INFO-END TEST:TestShopCar.test_coming_goods_details
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt20.3' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_coming_recommend_goods_details: [购物车]进入推荐商品详情页</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt20.3')" >
+        pass</a>
+
+    <div id='div_pt20.3' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt20.3').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt20.3: 2017-11-06 23:32:41,343-INFO-进入到首页
+2017-11-06 23:32:41,343-INFO-点击"购物车"
+2017-11-06 23:32:44,649-INFO-START TEST:TestShopCar.test_coming_recommend_goods_details
+2017-11-06 23:32:44,723-INFO-上滑屏幕
+2017-11-06 23:32:45,115-INFO-点击加入购物车按钮
+2017-11-06 23:32:47,949-INFO-获取商品名称
+2017-11-06 23:32:47,995-INFO-点击"关闭"
+2017-11-06 23:32:48,052-INFO-点击推荐商品价格
+2017-11-06 23:32:51,781-INFO-获取商品名称
+2017-11-06 23:32:51,845-INFO-END TEST:TestShopCar.test_coming_recommend_goods_details
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt20.4' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_del_goods: [购物车]加入推荐商品[删除商品]</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt20.4')" >
+        pass</a>
+
+    <div id='div_pt20.4' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt20.4').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt20.4: 2017-11-06 23:32:54,998-INFO-进入到首页
+2017-11-06 23:32:54,999-INFO-点击"购物车"
+2017-11-06 23:32:58,568-INFO-START TEST:TestShopCar.test_del_goods
+2017-11-06 23:33:00,974-INFO-点击"删除商品"
+2017-11-06 23:33:01,856-INFO-得到购物车标签分类数量
+2017-11-06 23:33:02,059-INFO-点击"清空购物车"
+2017-11-06 23:33:03,415-INFO-点击"确定"
+2017-11-06 23:34:00,569-INFO-上滑屏幕
+2017-11-06 23:34:00,953-INFO-点击加入购物车按钮
+2017-11-06 23:34:03,631-INFO-点击"确定"
+2017-11-06 23:34:35,319-INFO-点击"删除商品"
+2017-11-06 23:34:35,544-INFO-点击删除商品按钮
+2017-11-06 23:34:37,200-INFO-点击"确定"
+2017-11-06 23:34:39,257-INFO-下滑屏幕
+2017-11-06 23:34:40,911-INFO-END TEST:TestShopCar.test_del_goods
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt20.5' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_recommend: [购物车][为您推荐]显示检查</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt20.5')" >
+        pass</a>
+
+    <div id='div_pt20.5' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt20.5').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt20.5: 2017-11-06 23:34:43,982-INFO-进入到首页
+2017-11-06 23:34:43,982-INFO-点击"购物车"
+2017-11-06 23:34:46,837-INFO-START TEST:TestShopCar.test_recommend
+2017-11-06 23:34:46,892-INFO-上滑屏幕
+2017-11-06 23:34:48,461-INFO-END TEST:TestShopCar.test_recommend
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt20.6' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_recommend_add_shopCar: [购物车]为您推荐商品加入购物车</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt20.6')" >
+        pass</a>
+
+    <div id='div_pt20.6' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt20.6').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt20.6: 2017-11-06 23:34:51,457-INFO-进入到首页
+2017-11-06 23:34:51,457-INFO-点击"购物车"
+2017-11-06 23:34:54,337-INFO-START TEST:TestShopCar.test_recommend_add_shopCar
+2017-11-06 23:34:54,468-INFO-上滑屏幕
+2017-11-06 23:34:54,845-INFO-点击加入购物车按钮
+2017-11-06 23:34:57,541-INFO-获取商品名称
+2017-11-06 23:34:57,585-INFO-点击"确定"
+2017-11-06 23:35:03,066-INFO-获取商品名称
+2017-11-06 23:35:03,208-INFO-点击"删除商品"
+2017-11-06 23:35:04,054-INFO-得到购物车标签分类数量
+2017-11-06 23:35:04,219-INFO-点击"清空购物车"
+2017-11-06 23:35:05,288-INFO-点击"确定"
+2017-11-06 23:36:02,830-INFO-下滑屏幕
+2017-11-06 23:36:04,478-INFO-END TEST:TestShopCar.test_recommend_add_shopCar
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='ft20.7' class='text text-success'>
+    <td class='text text-success'><div class='testcase'>test_shopCar_add_minus: [购物车]点击+ - 修改购物车商品数量</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_ft20.7')" >
+        retry</a>
+
+    <div id='div_ft20.7' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_ft20.7').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+ft20.7: 2017-11-06 23:36:07,524-INFO-进入到首页
+2017-11-06 23:36:07,524-INFO-点击"购物车"
+2017-11-06 23:36:10,288-INFO-START TEST:TestShopCar.test_shopCar_add_minus
+2017-11-06 23:36:10,471-INFO-上滑屏幕
+2017-11-06 23:36:10,854-INFO-点击加入购物车按钮
+2017-11-06 23:36:13,571-INFO-点击"确定"
+imagehttp://192.168.88.79:8081/huipeitong/image/17-11-06_23_38_04.png
+2017-11-06 23:38:07,566-INFO-END TEST:TestShopCar.test_shopCar_add_minus
+Traceback (most recent call last):
+  File "E:\huipeitong\base\api.py", line 164, in wrapper
+    result = func(*args, **kwargs)
+  File "E:\huipeitong\testcase\test_shopCar.py", line 77, in test_shopCar_add_minus
+    '商品未加入购物车'
+AssertionError: False is not true : 商品未加入购物车
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="http://192.168.88.79:8081/huipeitong/image/17-11-06_23_38_04.png" title="http://192.168.88.79:8081/huipeitong/image/17-11-06_23_38_04.png ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt20.8' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_shopCar_add_minus: [购物车]点击+ - 修改购物车商品数量</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt20.8')" >
+        pass</a>
+
+    <div id='div_pt20.8' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt20.8').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt20.8: 2017-11-06 23:38:17,681-INFO-进入到首页
+2017-11-06 23:38:17,681-INFO-点击"购物车"
+2017-11-06 23:38:20,515-INFO-START TEST:TestShopCar.test_shopCar_add_minus
+2017-11-06 23:38:20,675-INFO-上滑屏幕
+2017-11-06 23:38:21,054-INFO-点击加入购物车按钮
+2017-11-06 23:38:23,733-INFO-点击"确定"
+2017-11-06 23:38:29,534-INFO-得到购买件数1
+2017-11-06 23:38:29,535-INFO-点击+按钮
+2017-11-06 23:38:45,023-INFO-得到购买件数2
+2017-11-06 23:38:45,024-INFO-点击-按钮
+2017-11-06 23:38:58,363-INFO-得到购买件数1
+2017-11-06 23:38:58,363-INFO-点击"删除商品"
+2017-11-06 23:38:59,269-INFO-得到购物车标签分类数量
+2017-11-06 23:38:59,451-INFO-点击"清空购物车"
+2017-11-06 23:39:00,796-INFO-点击"确定"
+2017-11-06 23:39:58,439-INFO-下滑屏幕
+2017-11-06 23:40:00,096-INFO-END TEST:TestShopCar.test_shopCar_add_minus
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+<tr id='pt20.9' class='hiddenRow'>
+    <td class='text text-success'><div class='testcase'>test_shopCar_minus_del_goods: [购物车]点击- 删除商品</div></td>
+    <td colspan='5' align='center'>
+
+    <!--css div popup start-->
+    <a class="popup_link btn btn-xs btn-default" onfocus='this.blur();' href="javascript:showTestDetail('div_pt20.9')" >
+        pass</a>
+
+    <div id='div_pt20.9' class="popup_window">
+        <div style='text-align: right;cursor:pointer'>
+        <a onfocus='this.blur();' onclick="document.getElementById('div_pt20.9').style.display = 'none' " >
+           [x]</a>
+        </div>
+        <pre>
+        
+pt20.9: 2017-11-06 23:40:03,128-INFO-进入到首页
+2017-11-06 23:40:03,128-INFO-点击"购物车"
+2017-11-06 23:40:05,817-INFO-START TEST:TestShopCar.test_shopCar_minus_del_goods
+2017-11-06 23:40:05,994-INFO-上滑屏幕
+2017-11-06 23:40:06,375-INFO-点击加入购物车按钮
+2017-11-06 23:40:09,047-INFO-点击"确定"
+2017-11-06 23:40:14,752-INFO-点击-按钮
+2017-11-06 23:40:14,851-INFO-点击"确定"
+2017-11-06 23:40:18,195-INFO-下滑屏幕
+2017-11-06 23:40:19,699-INFO-END TEST:TestShopCar.test_shopCar_minus_del_goods
+
+
+        </pre>
+    </div>
+    <!--css div popup end-->
+    </td>
+    <td align='left'>
+    <a target="_blank" name="pic" href="" title=" ">pic</a>
+    </td>
+</tr>
+
+    </tbody>
+    <tfoot>
+        <tr id='total_row'>
+            <td>Total</td>
+            <td>126</td>
+            <td class="text text-success">120</td>
+            <td class="text text-danger">6</td>
+            <td class="text text-warning">0</td>
+            <td>&nbsp;</td>
+            <td>&nbsp;</td>
+        </tr>
+    </tfoot>
+</table>
+<script>
+    drawCircle(120, 6, 0)
+</script>
+
+    <div id='ending'>&nbsp;</div>
+</div>
+
+</body>
+</html>
